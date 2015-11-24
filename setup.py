@@ -17,5 +17,8 @@ setup(
     description="Common Python code used in HGI.",
     long_description=open("README.md").read(),
 
+    install_requires=[x for x in open("requirements.txt").read().splitlines() if "://" not in x],
+    dependency_links=[x for x in open("requirements.txt").read().splitlines() if "://" in x],
+
     test_suite="hgicommon.tests"
 )

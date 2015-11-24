@@ -64,3 +64,12 @@ class SearchCriteria(list):
                 raise ValueError("Search criterion based on the attribute `%s` already added")
 
         super(SearchCriteria, self).append(search_criterion)
+
+
+class File(Model):
+    """
+    Model of a file.
+    """
+    def __init__(self, directory: str, file_name: str):
+        self.directory = directory
+        self.file_name = file_name
