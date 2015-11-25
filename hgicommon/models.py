@@ -1,6 +1,5 @@
 from abc import ABCMeta
 from typing import Any
-from typing import List
 
 from hgicommon.enums import ComparisonOperator
 
@@ -28,15 +27,6 @@ class Model(metaclass=ABCMeta):
 
     def __hash__(self):
         return hash(str(self))
-
-
-class Metadata(Model):
-    """
-    Model of a unit of metadata
-    """
-    def __init__(self, attribute: str, value: Any):
-        self.attribute = attribute
-        self.value = value
 
 
 class SearchCriterion(Model):

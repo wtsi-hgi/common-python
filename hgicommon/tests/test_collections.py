@@ -5,7 +5,6 @@ from hgicommon.enums import ComparisonOperator
 from hgicommon.models import SearchCriterion
 
 
-
 class TestSearchCriteria(unittest.TestCase):
     """
     Tests for `SearchCriteria`.
