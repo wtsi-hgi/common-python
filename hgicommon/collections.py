@@ -1,6 +1,6 @@
 from typing import List
 
-from hgicommon.models import Model, SearchCriterion
+from hgicommon.models import SearchCriterion
 
 
 class SearchCriteria(list):
@@ -31,14 +31,17 @@ class Metadata(object):
     def __init__(self):
         self._data = dict()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._data)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '{class_id} {representation}'.format(
             class_id = self.__class__,
             representation = str(self)
         )
+
+    def __eq__(self, other: Metadata) -> bool:
+        return self._data == other._data
 
     def __iter__(self):
         return self._data.__iter__()
