@@ -1,6 +1,6 @@
 from typing import List
 
-from hgicommon.models import SearchCriterion
+from hgicommon.models import Model, SearchCriterion
 
 
 class SearchCriteria(list):
@@ -20,29 +20,45 @@ class SearchCriteria(list):
         super(SearchCriteria, self).append(search_criterion)
 
 
-class Metadata(dict):
-    """
-    Self-canonicalising dictionary for metadata.
-    """
-    def __init__(self, base=None, **kwargs):
-        """
-        Override constructor, so base and kwargs are canonicalised.
-        """
-        super(Metadata, self).__init__(**kwargs)
-        if base and type(base) is dict:
-            for key, value in base.items():
-                self.__setitem__(key, value)
+class Metadata(object):
+    '''
+    Generic key-value metadata model
+    
+    This is composed from a dictionary, rather than inheriting, in case
+    the implementation needs to change and to expose only the methods
+    used... Go figure :P
+    '''
+    def __init__(self):
+        self._data = dict()
 
-        for key, value in kwargs.items():
-            self.__setitem__(key, value)
+    def __str__(self):
+        return str(self._data)
 
-    def __setitem__(self, key, value):
-        """
-        Override __setitem__, so scalar values are put into a list and lists are sorted and made unique.
+    def __repr__(self):
+        return '{class_id} {representation}'.format(
+            class_id = self.__class__,
+            representation = str(self)
+        )
 
-        n.b., We assume our dictionaries are only one deep.
-        """
-        if type(value) is list:
-            super().__setitem__(key, sorted(set(value)))
-        else:
-            super().__setitem__(key, [value])
+    def __iter__(self):
+        return self._data.__iter__()
+
+    def get(self, key: str, default=None):
+        '''
+        Get item in metadata dictionary by its key, returning a fallback
+        value when the key is not found
+
+        @param  key      Dictionary key
+        @param  default  Default value, if not found
+        @return The value
+        '''
+        return self._data.get(key, default)
+
+    def set(self, key: str, value):
+        '''
+        Set item in metadata dictionary by its key
+
+        @param  key    Dictionary key
+        @param  value  Value
+        '''
+        self._data[key] = value
