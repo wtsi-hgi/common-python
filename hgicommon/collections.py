@@ -26,7 +26,7 @@ class Metadata(object):
     
     This is composed from a dictionary, rather than inheriting, in case
     the implementation needs to change and to expose only the methods
-    used... Go figure :P
+    used...
     '''
     def __init__(self):
         self._data = dict()
@@ -40,28 +40,52 @@ class Metadata(object):
             representation = str(self)
         )
 
-    def __eq__(self, other: Metadata) -> bool:
+    def __eq__(self, other) -> bool:
         return self._data == other._data
 
     def __iter__(self):
         return self._data.__iter__()
 
-    def get(self, key: str, default=None):
+    def has_attribute(self, attribute: str) -> bool:
         '''
-        Get item in metadata dictionary by its key, returning a fallback
-        value when the key is not found
+        Check an attribute exists in the metadata
 
-        @param  key      Dictionary key
-        @param  default  Default value, if not found
+        @param  attribute  Dictionary key
+        @return Exists in the dictionary
+        '''
+        return attribute in self._data
+
+    def items(self):
+        return self._data.items()
+
+    def attributes(self):
+        return self._data.keys()
+
+    def values(self):
+        return self._data.values()
+
+    def get(self, attribute: str, default=None):
+        '''
+        Get item in metadata by its attribute, returning a fallback
+        value when the attribute is not found
+
+        @param  attribute  Dictionary key
+        @param  default    Default value, if not found
         @return The value
         '''
-        return self._data.get(key, default)
+        return self._data.get(attribute, default)
 
-    def set(self, key: str, value):
-        '''
-        Set item in metadata dictionary by its key
+    def __getitem__(self, attribute: str):
+        return self.get(attribute)
 
-        @param  key    Dictionary key
-        @param  value  Value
+    def set(self, attribute: str, value):
         '''
-        self._data[key] = value
+        Set item in metadata by its attribute
+
+        @param  attribute  Dictionary key
+        @param  value      Value
+        '''
+        self._data[attribute] = value
+
+    def __setitem__(self, attribute: str, value):
+        self.set(attribute, value)
