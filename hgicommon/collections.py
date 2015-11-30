@@ -1,11 +1,10 @@
-from typing import List, Sequence
-
+from typing import List, Sequence, Sized, Optional
 from hgicommon.models import SearchCriterion
 
 
 class SearchCriteria(list):
     """
-    A collection of `SearchCriteria`.
+    A collection of `SearchCriterion`.
     """
     _DUPLICATE_ERROR_MESSAGE = "Search criterion based on the attribute `%s` already added"
 
@@ -36,16 +35,18 @@ class SearchCriteria(list):
             self.append(search_criteria)
 
 
-class Metadata(object):
-    '''
-    Generic key-value metadata model
+class Metadata(Sized):
+    """
+    Generic key-value metadata model.
     
     This is composed from a dictionary, rather than inheriting, in case
     the implementation needs to change and to expose only the methods
     used...
-    '''
-    def __init__(self):
+    """
+    def __init__(self, initial: Optional[dict]=()):
         self._data = dict()
+        for key, value in initial.items():
+            self.set(key, value)
 
     def __str__(self) -> str:
         return str(self._data)
@@ -105,3 +106,6 @@ class Metadata(object):
 
     def __setitem__(self, attribute: str, value):
         self.set(attribute, value)
+
+    def __len__(self):
+        return len(self._data)
