@@ -43,10 +43,11 @@ class Metadata(Sized):
     the implementation needs to change and to expose only the methods
     used...
     """
-    def __init__(self, initial: Optional[dict]=()):
+    def __init__(self, initial: Optional[dict]=None):
         self._data = dict()
-        for key, value in initial.items():
-            self.set(key, value)
+        if initial is not None:
+            for key, value in initial.items():
+                self.set(key, value)
 
     def __str__(self) -> str:
         return str(self._data)
