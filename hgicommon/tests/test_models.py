@@ -1,7 +1,7 @@
 import unittest
 from datetime import date
 
-from hgicommon.models import Model
+from hgicommon.models import Model, Priority
 
 
 class _StubModel(Model):
@@ -51,5 +51,42 @@ class TestModel(unittest.TestCase):
         self.assertTrue(isinstance(string_representation, str))
 
 
-if __name__ == '__main__':
+class TestPriority(unittest.TestCase):
+    """
+    Test cases for `Priority`.
+    """
+    class _MockPriorty(Priority):
+        pass
+
+    def setUp(self):
+        self.priority_model_1 = TestPriority._MockPriorty(Priority.MIN_PRIORITY)
+        self.priority_model_2 = TestPriority._MockPriorty(Priority.MAX_PRIORITY - 1)
+        self.priority_model_3 = TestPriority._MockPriorty(Priority.MAX_PRIORITY)
+
+    def test_less_than(self):
+        self.assertLess(self.priority_model_1, self.priority_model_2)
+        self.assertLess(self.priority_model_1, self.priority_model_3)
+
+    def test_less_than_or_equal(self):
+        self.assertLessEqual(self.priority_model_2, self.priority_model_2)
+        self.assertLessEqual(self.priority_model_2, self.priority_model_3)
+
+    def test_equal(self):
+        self.assertEquals(self.priority_model_1, self.priority_model_1)
+
+    def test_not_equal(self):
+        self.assertNotEqual(self.priority_model_1, self.priority_model_2)
+        self.assertNotEqual(self.priority_model_1, self.priority_model_3)
+        self.assertNotEqual(self.priority_model_2, self.priority_model_3)
+
+    def test_greater_than_or_equal(self):
+        self.assertGreaterEqual(self.priority_model_3, self.priority_model_2)
+        self.assertGreaterEqual(self.priority_model_3, self.priority_model_3)
+
+    def test_greater_than(self):
+        self.assertGreater(self.priority_model_3, self.priority_model_2)
+        self.assertGreater(self.priority_model_3, self.priority_model_1)
+
+
+if __name__ == "__main__":
     unittest.main()

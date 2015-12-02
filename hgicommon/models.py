@@ -54,12 +54,35 @@ class Priority(Model, metaclass=ABCMeta):
     """
     A model that has a priority.
     """
-    _MAX_PRIORITY = sys.maxsize
-    _MIN_PRIORITY = -sys.maxsize
+    _NOT_COMPARABLE = "Can only compare to classes implementing 'Priority'"
 
-    def __init__(self, priority: int=_MAX_PRIORITY):
-        """
-        Default constructor.
-        :param priority: the priority
-        """
+    MAX_PRIORITY = sys.maxsize
+    MIN_PRIORITY = -sys.maxsize
+
+    def __init__(self, priority: int=MIN_PRIORITY):
         self.priority = priority
+
+    def __lt__(self, other):
+        if not issubclass(type(other), Priority):
+            raise ValueError(Priority._NOT_COMPARABLE)
+        return self.priority < other.priority
+
+    def __le__(self, other):
+        if not issubclass(type(other), Priority):
+            raise ValueError(Priority._NOT_COMPARABLE)
+        return self.priority <= other.priority
+
+    def __eq__(self, other):
+        if not issubclass(type(other), Priority):
+            raise ValueError(Priority._NOT_COMPARABLE)
+        return self.priority == other.priority
+
+    def __ge__(self, other):
+        if not issubclass(type(other), Priority):
+            raise ValueError(Priority._NOT_COMPARABLE)
+        return self.priority >= other.priority
+
+    def __gt__(self, other):
+        if not issubclass(type(other), Priority):
+            raise ValueError(Priority._NOT_COMPARABLE)
+        return self.priority > other.priority
