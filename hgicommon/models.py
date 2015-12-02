@@ -1,6 +1,8 @@
 from abc import ABCMeta
 from typing import Any
 
+import sys
+
 from hgicommon.enums import ComparisonOperator
 
 
@@ -46,3 +48,18 @@ class File(Model):
     def __init__(self, directory: str, file_name: str):
         self.directory = directory
         self.file_name = file_name
+
+
+class Priority(Model, metaclass=ABCMeta):
+    """
+    A model that has a priority.
+    """
+    _MAX_PRIORITY = sys.maxsize
+    _MIN_PRIORITY = -sys.maxsize
+
+    def __init__(self, priority: int=_MAX_PRIORITY):
+        """
+        Default constructor.
+        :param priority: the priority
+        """
+        self.priority = priority
