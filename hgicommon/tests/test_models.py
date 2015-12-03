@@ -1,5 +1,6 @@
 import unittest
 from datetime import date
+from queue import PriorityQueue
 
 from hgicommon.models import Model, Priority
 
@@ -55,37 +56,36 @@ class TestPriority(unittest.TestCase):
     """
     Test cases for `Priority`.
     """
-    class _MockPriorty(Priority):
+    class _MockPriority(Priority):
         pass
 
     def setUp(self):
-        self.priority_model_1 = TestPriority._MockPriorty(Priority.MIN_PRIORITY)
-        self.priority_model_2 = TestPriority._MockPriorty(Priority.MAX_PRIORITY - 1)
-        self.priority_model_3 = TestPriority._MockPriorty(Priority.MAX_PRIORITY)
+        self.low_priority = TestPriority._MockPriority(Priority.MIN_PRIORITY)
+        self.medium_priority = TestPriority._MockPriority(Priority.get_lower_priority_value(Priority.MAX_PRIORITY))
+        self.high_priority = TestPriority._MockPriority(Priority.MAX_PRIORITY)
 
-    def test_less_than(self):
-        self.assertLess(self.priority_model_1, self.priority_model_2)
-        self.assertLess(self.priority_model_1, self.priority_model_3)
+    def test_get_lower_priority_value(self):
+        lower = Priority.get_lower_priority_value(Priority.MAX_PRIORITY)
+        self.assertLess(Priority.MIN_PRIORITY - lower, Priority.MIN_PRIORITY - Priority.MAX_PRIORITY)
 
-    def test_less_than_or_equal(self):
-        self.assertLessEqual(self.priority_model_2, self.priority_model_2)
-        self.assertLessEqual(self.priority_model_2, self.priority_model_3)
+    def test_get_lower_priority_value_if_already_minimum(self):
+        self.assertRaises(ValueError, Priority.get_lower_priority_value, Priority.MIN_PRIORITY)
 
-    def test_equal(self):
-        self.assertEquals(self.priority_model_1, self.priority_model_1)
+    def test_get_higher_priority_value(self):
+        higher = Priority.get_higher_priority_value(Priority.MIN_PRIORITY)
+        self.assertGreater(Priority.MAX_PRIORITY - higher, Priority.MAX_PRIORITY - Priority.MIN_PRIORITY)
 
-    def test_not_equal(self):
-        self.assertNotEqual(self.priority_model_1, self.priority_model_2)
-        self.assertNotEqual(self.priority_model_1, self.priority_model_3)
-        self.assertNotEqual(self.priority_model_2, self.priority_model_3)
+    def test_work_in_priority_queue(self):
+        queue = PriorityQueue()
+        priorities = [self.medium_priority, self.low_priority, self.high_priority]
 
-    def test_greater_than_or_equal(self):
-        self.assertGreaterEqual(self.priority_model_3, self.priority_model_2)
-        self.assertGreaterEqual(self.priority_model_3, self.priority_model_3)
+        for priority in priorities:
+            queue.put(priority)
 
-    def test_greater_than(self):
-        self.assertGreater(self.priority_model_3, self.priority_model_2)
-        self.assertGreater(self.priority_model_3, self.priority_model_1)
+        self.assertListEqual(sorted(priorities), [self.high_priority, self.medium_priority, self.low_priority])
+        self.assertEquals(queue.get(), self.high_priority)
+        self.assertEquals(queue.get(), self.medium_priority)
+        self.assertEquals(queue.get(), self.low_priority)
 
 
 if __name__ == "__main__":
