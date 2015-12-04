@@ -2,7 +2,7 @@ import unittest
 from typing import List
 from unittest.mock import MagicMock
 
-from hgicommon.listenable import Listenable
+from hgicommon.mixable.listenable import Listenable
 
 
 class _StubListenable:

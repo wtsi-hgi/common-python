@@ -1,6 +1,5 @@
-from abc import ABCMeta
-
 import sys
+from abc import ABCMeta
 
 
 class Priority(metaclass=ABCMeta):
