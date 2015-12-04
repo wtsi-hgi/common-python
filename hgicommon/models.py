@@ -43,7 +43,13 @@ class File(Model):
     """
     Model of a file.
     """
-    def __init__(self, directory: str, file_name: str):
+    def __init__(self, directory: str, file_name: str=None):
         self.directory = directory
         self.file_name = file_name
 
+    def is_directory(self):
+        """
+        Whether the file represents a directory.
+        :return: if the file is a directory
+        """
+        return self.file_name is None
