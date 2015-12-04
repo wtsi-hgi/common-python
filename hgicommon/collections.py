@@ -36,7 +36,7 @@ class SearchCriteria(list):
             self.append(search_criteria)
 
 
-class Metadata(Model, Sized):
+class Metadata(Sized):
     """
     Generic key-value metadata model.
     """
@@ -50,6 +50,20 @@ class Metadata(Model, Sized):
 
     def __iter__(self):
         return self._data.__iter__()
+
+    def __str__(self) -> str:
+        return str(self._data)
+
+    def __repr__(self) -> str:
+        return '{class_id} {representation}'.format(
+            class_id = self.__class__,
+            representation = str(self)
+        )
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return self._data == other._data
 
     def has_attribute(self, attribute: str) -> bool:
         """
