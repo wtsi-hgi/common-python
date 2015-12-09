@@ -1,12 +1,14 @@
 import collections
 import copy
+import glob
 from abc import abstractmethod
 from threading import Thread
+from typing import Dict
 from typing import Sequence, Iterable, TypeVar, Generic
 
 from multiprocessing import Lock
 
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
 SourceDataType = TypeVar('T')
@@ -67,17 +69,61 @@ class InFileDataSource(DataSource[SourceDataType]):
         :param directory_location: the location of the processor
         """
         self._directory_location = directory_location
+        self._observer = None
+        self._file_locations = dict()   # type: Dict[str, SourceDataType]
+        self._load_all_in_directory()
+
+    @abstractmethod
+    def _extract_data_from_file(self, file_path: str) -> Iterable[SourceDataType]:
+        """
+        Extracts data from the file at the given file path.
+        :param file_path: the path to the file to extract data from
+        :return: the extracted data
+        """
+        pass
+
+    @abstractmethod
+    def _is_data_file(self, file_path: str) -> bool:
+        """
+        Determines whether the file at the given path is of interest.
+        :param file_path: path to the updated file
+        :return: whether the file is of interest
+        """
+        pass
+
+    def get_all(self) -> Sequence[SourceDataType]:
+        data = []
+        for key, values in self._file_locations.items():
+            data.extend(values)
+        return data
+
+    def _load_all_in_directory(self):
+        """
+        TODO
+        """
+        for file_path in glob.iglob("%s/**/*" % self._directory_location, recursive=True):
+            if self._is_data_file(file_path):
+                self._file_locations[file_path] = self._extract_data_from_file(file_path)
+
+
+class SynchronisedInFileDataSource(InFileDataSource):
+    """
+    TODO
+    """
+    def __init__(self, directory_location: str):
+        """
+        Default constructor.
+        :param directory_location:
+        :return:
+        """
+        super().__init__(directory_location)
         self._status_lock = Lock()
         self._running = False
-        self._observer = None
 
         self._event_handler = FileSystemEventHandler()
         self._event_handler.on_created = self._on_file_created
         self._event_handler.on_modified = self._on_file_modified
         self._event_handler.on_deleted = self._on_file_deleted
-
-    def get_all(self):
-        pass
 
     def start(self):
         """
@@ -105,20 +151,36 @@ class InFileDataSource(DataSource[SourceDataType]):
             self._running = False
         self._status_lock.release()
 
-    def _on_file_created(self):
+    def _on_file_created(self, event: FileSystemEvent):
         """
         Called when a file in the monitored directory has been created.
+        :param event: the file system event
         """
-        pass
+        # TODO: If a directory is created, are events generated for just the directory or all of the files in the
+        # directory?
+        if not event.is_directory and InFileDataSource._is_data_file(event.src_path):
+            assert event.src_path not in self._file_locations
+            self._file_locations[event.src_path] = self._extract_data_from_file(event.src_path)
 
-    def _on_file_modified(self):
+    def _on_file_modified(self, event: FileSystemEvent):
         """
         Called when a file in the monitored directory has been modified.
+        :param event: the file system event
         """
-        pass
+        # TODO: If a directory is modified, are events generated for just the directory or all of the files in the
+        # directory?
+        if not event.is_directory and InFileDataSource._is_data_file(event.src_path):
+            assert event.src_path in self._file_locations
+            self._file_locations[event.src_path] = self._extract_data_from_file(event.src_path)
 
-    def _on_file_deleted(self):
+    def _on_file_deleted(self, event: FileSystemEvent):
         """
         Called when a file in the monitored directory has been deleted.
+        :param event: the file system event
         """
-        pass
+        # TODO: If a directory is deleted, are events generated for just the directory or all of the files in the
+        # directory?
+        if not event.is_directory and InFileDataSource._is_data_file(event.src_path):
+            assert event.src_path in self._file_locations
+            del(self._file_locations[event.src_path])
+

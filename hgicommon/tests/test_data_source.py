@@ -1,7 +1,7 @@
 import copy
 import unittest
-
-from cookiemonster.common.data_source import MultiDataSource, StaticDataSource
+from tempfile import mkdtemp, mkstemp
+from hgicommon.data_source import StaticDataSource, MultiDataSource
 
 
 class TestMultiSource(unittest.TestCase):
@@ -26,12 +26,6 @@ class TestMultiSource(unittest.TestCase):
         self.assertIsInstance(source.get_all()[0], type(self.data[0]))
         self.assertCountEqual(source.get_all(), self.data)
 
-    def test_get_all_change_of_output_has_no_effect(self):
-        sources = copy.copy(self.sources)
-        source = MultiDataSource(sources)
-        source.get_all().append(source)
-        self.assertCountEqual(source.get_all(), self.sources)
-
 
 class TestStaticDataSource(unittest.TestCase):
     """
@@ -50,11 +44,26 @@ class TestStaticDataSource(unittest.TestCase):
         source = StaticDataSource(self.data)
         self.assertCountEqual(source.get_all(), self.data)
 
-    def test_get_all_change_of_output_has_no_effect(self):
-        data = copy.copy(self.data)
-        source = StaticDataSource(data)
-        source.get_all().append(1)
-        self.assertCountEqual(source.get_all(), self.data)
+
+class TestInFileDataSource(unittest.TestCase):
+    """
+    Tests for `InFileDataSource`.
+    """
+    def setUp(self):
+        self.temp_directory = mkdtemp(self._testMethodName)
+        self.data = [i for i in range(12)]
+
+        mkstemp(dir=self.temp_directory, text=self.data[0:3])
+
+        # TODO
+
+
+
+class TestSynchronisedInFileDataSource(unittest.TestCase):
+    """
+    Tests for `SynchronisedInFileDataSource`.
+    """
+    pass
 
 
 if __name__ == "__main__":
