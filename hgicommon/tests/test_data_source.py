@@ -7,11 +7,10 @@ import unittest
 from multiprocessing import Lock
 from tempfile import mkdtemp
 from threading import Semaphore
-from typing import Any
+from typing import Any, List, Tuple
 from unittest.mock import MagicMock
 
 import time
-from atomicwrites import atomic_write
 from watchdog.events import FileSystemEventHandler
 
 from hgicommon.data_source import StaticDataSource, MultiDataSource
@@ -154,20 +153,21 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
         self.source.start()
         self._block_until_source_started()
 
-        number_of_extra_files = 10
         change_trigger = Semaphore(0)
         self.source.add_listener(change_trigger.release)
 
         more_data = [i for i in range(50)]
-        write_data_to_files_in_temp_directory(more_data, number_of_extra_files, temp_directory=self.temp_directory,
+        write_data_to_files_in_temp_directory(more_data, 10, temp_directory=self.temp_directory,
                                               file_prefix=TestSynchronisedFilesDataSource._FILE_PREFIX)
+        even_more_data = self._add_more_data_in_nested_directory(10)[1]
 
         triggers = 0
-        while triggers != number_of_extra_files:
+        while triggers != 20:
             change_trigger.acquire()
             triggers += 1
 
-        self.assertCountEqual(self.source.get_all(), self.data + more_data)
+        self.assertCountEqual(self.source.get_all(), self.data + more_data + even_more_data)
+
 
     def test_get_all_when_file_deleted(self):
         self.source.start()
@@ -184,6 +184,22 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
         change_lock.acquire()
 
         self.assertCountEqual(self.source.get_all(), [x for x in self.data if x not in deleted_data])
+
+    def test_get_all_when_folder_containing_files_is_deleted(self):
+        nested_directory_path = self._add_more_data_in_nested_directory()[0]
+
+        self.source.start()
+        self._block_until_source_started()
+
+        change_lock = Lock()
+        change_lock.acquire()
+        self.source.add_listener(change_lock.release)
+
+        shutil.rmtree(nested_directory_path)
+
+        change_lock.acquire()
+
+        self.assertCountEqual(self.source.get_all(), self.data)
 
     def test_get_all_when_file_modified(self):
         self.source.start()
@@ -227,6 +243,19 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
 
         # XXX: Not removing the temp file to avoid the notification.
         # XXX: Not unscheduling as observer does not like it for some reason.
+
+    def _add_more_data_in_nested_directory(self, number_of_extra_files: int=1) -> Tuple[str, List[int]]:
+        """
+        TODO
+        :param number_of_extra_files:
+        :return:
+        """
+        nested_directory_path = os.path.join(self.temp_directory, "nested")
+        os.makedirs(nested_directory_path)
+        more_data = [i for i in range(50)]
+        write_data_to_files_in_temp_directory(more_data, number_of_extra_files, temp_directory=nested_directory_path,
+                                              file_prefix=TestSynchronisedFilesDataSource._FILE_PREFIX)
+        return (nested_directory_path, more_data)
 
     def tearDown(self):
         shutil.rmtree(self.temp_directory)

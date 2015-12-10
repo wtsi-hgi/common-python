@@ -12,11 +12,11 @@ def write_data_to_files_in_temp_directory(data: List[Any], spread_over_n_files: 
     :param spread_over_n_files: the number of files in which the data is to be spread over
     :param separator: the separator between data items in each file
     :param temp_directory: the specific temp directory to use
-    :param file_prefix: TODO
+    :param file_prefix: prefix to the files created
     :return: the location of the temp directory
     """
     if temp_directory is None:
-        temp_directory = mkdtemp(suffix="hgicommon.tests._helper")
+        temp_directory = mkdtemp(suffix=write_data_to_files_in_temp_directory.__name__)
 
     datum_per_file = ceil(len(data) / spread_over_n_files)
     for i in range(spread_over_n_files):
