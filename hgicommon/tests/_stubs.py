@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from hgicommon.data_source import InFileDataSource, SourceDataType
+from hgicommon.data_source import FilesDataSource, SourceDataType, SynchronisedFilesDataSource
 from hgicommon.models import Model
 
 
@@ -12,9 +12,20 @@ class StubModel(Model):
         super(Model, self).__init__()
 
 
-class StubInFileDataSource(InFileDataSource):
+class StubFilesDataSource(FilesDataSource):
     """
-    Stub `InFileDataSource`.
+    Stub `FilesDataSource`.
+    """
+    def is_data_file(self, file_path: str) -> bool:
+        pass
+
+    def extract_data_from_file(self, file_path: str) -> Iterable[SourceDataType]:
+        pass
+
+
+class StubSynchronisedInFileDataSource(SynchronisedFilesDataSource):
+    """
+    Stub `SynchronisedFilesDataSource`.
     """
     def is_data_file(self, file_path: str) -> bool:
         pass

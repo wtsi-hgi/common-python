@@ -1,5 +1,4 @@
 from abc import ABCMeta
-from enum import Enum, unique
 from typing import Generic, Sequence, TypeVar, Callable, Optional
 
 _ListenableDataType = TypeVar('_ListenableDataType')

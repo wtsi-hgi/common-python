@@ -1,15 +1,18 @@
 import collections
 import copy
 import glob
+import logging
 from abc import abstractmethod, ABCMeta
-from threading import Thread
 from typing import Dict
 from typing import Sequence, Iterable, TypeVar, Generic
 
 from multiprocessing import Lock
 
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
+import time
+from watchdog.events import FileSystemEventHandler, FileSystemEvent, LoggingEventHandler
 from watchdog.observers import Observer
+
+from hgicommon.mixable import Listenable
 
 SourceDataType = TypeVar('T')
 
@@ -59,7 +62,7 @@ class StaticDataSource(DataSource[SourceDataType]):
         return self._data
 
 
-class InFileDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
+class FilesDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
     """
     TODO
     """
@@ -68,6 +71,7 @@ class InFileDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
         Default constructor.
         :param directory_location: the location of the processor
         """
+        super().__init__()
         self._directory_location = directory_location
 
 
@@ -90,22 +94,38 @@ class InFileDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
         pass
 
     def get_all(self) -> Sequence[SourceDataType]:
-        return self._load_all_in_directory()
+        return FilesDataSource._extract_data_from_origin_map(self._load_all_in_directory())
 
-    def _load_all_in_directory(self) -> Sequence[SourceDataType]:
+    def _load_all_in_directory(self) -> Dict[str, Iterable[SourceDataType]]:
         """
-        TODO
+        Loads all of the data from the files in directory location.
+        :return: a origin map of all the loaded data
         """
-        data = []
+        origin_mapped_data = dict()    # type: Dict[str, Iterable[SourceDataType]]
         for file_path in glob.iglob("%s/**/*" % self._directory_location, recursive=True):
             if self.is_data_file(file_path):
-                data.extend(self.extract_data_from_file(file_path))
+                origin_mapped_data[file_path] = self.extract_data_from_file(file_path)
+        return origin_mapped_data
+
+    @staticmethod
+    def _extract_data_from_origin_map(origin_mapped_data: Dict[str, Iterable[SourceDataType]]) \
+            -> Iterable[SourceDataType]:
+        """
+        Extracts the data from a data origin map.
+        :param origin_mapped_data: a map containing the origin of the data as the key string and the data as the value
+        :return: the data contained within the map
+        """
+        data = []
+        for _, data_item in origin_mapped_data.items():
+            data.extend(data_item)
         return data
 
 
-class SynchronisedInFileDataSource(InFileDataSource):
+class SynchronisedFilesDataSource(FilesDataSource, Listenable, metaclass=ABCMeta):
     """
     TODO
+
+    Can have listeners which are called when an update to the data is made...
     """
     def __init__(self, directory_location: str):
         """
@@ -117,69 +137,84 @@ class SynchronisedInFileDataSource(InFileDataSource):
         self._status_lock = Lock()
         self._running = False
         self._observer = None
-        self._file_locations = dict()   # type: Dict[str, SourceDataType]
+        self._origin_mapped_data = dict()   # type: Dict[str, SourceDataType]
 
         self._event_handler = FileSystemEventHandler()
         self._event_handler.on_created = self._on_file_created
         self._event_handler.on_modified = self._on_file_modified
         self._event_handler.on_deleted = self._on_file_deleted
+        self._event_handler.on_any_event = SynchronisedFilesDataSource._on_any_event
+
+    def get_all(self) -> Sequence[SourceDataType]:
+        if not self._running:
+            raise RuntimeError("Not started")
+
+        return FilesDataSource._extract_data_from_origin_map(self._origin_mapped_data)
 
     def start(self):
         """
         Monitors data kept in files in the predefined directory in a new thread.
-        """
-        self._status_lock.acquire()
-        if self._running:
-            raise RuntimeError("Already running")
-        self._running = True
 
+        Note: Due to the underlying library, it may take a few milliseconds after this method is started for changes to
+        start to being noticed.
+        """
+        with self._status_lock:
+            if self._running:
+                raise RuntimeError("Already running")
+            self._running = True
+
+        self._origin_mapped_data = self._load_all_in_directory()
+
+        # Cannot re-use Observer after stopped
         self._observer = Observer()
         self._observer.schedule(self._event_handler, self._directory_location, recursive=True)
         self._observer.start()
-        self._status_lock.release()
 
     def stop(self):
         """
         Stops monitoring the predefined directory.
         """
-        self._status_lock.acquire()
-        if self._running:
-            assert self._observer is not None
-            self._observer.stop()
-            self._observer = None
-            self._running = False
-        self._status_lock.release()
+        with self._status_lock:
+            if self._running:
+                assert self._observer is not None
+                self._observer.stop()
+                self._running = False
+                self._origin_mapped_data = dict()
 
     def _on_file_created(self, event: FileSystemEvent):
         """
         Called when a file in the monitored directory has been created.
         :param event: the file system event
         """
-        # TODO: If a directory is created, are events generated for just the directory or all of the files in the
-        # directory?
-        if not event.is_directory and InFileDataSource.is_data_file(event.src_path):
-            assert event.src_path not in self._file_locations
-            self._file_locations[event.src_path] = self.extract_data_from_file(event.src_path)
+        if not event.is_directory and self.is_data_file(event.src_path):
+            assert event.src_path not in self._origin_mapped_data
+            self._origin_mapped_data[event.src_path] = self.extract_data_from_file(event.src_path)
+            self.notify_listeners()
 
     def _on_file_modified(self, event: FileSystemEvent):
         """
         Called when a file in the monitored directory has been modified.
         :param event: the file system event
         """
-        # TODO: If a directory is modified, are events generated for just the directory or all of the files in the
-        # directory?
-        if not event.is_directory and InFileDataSource.is_data_file(event.src_path):
-            assert event.src_path in self._file_locations
-            self._file_locations[event.src_path] = self.extract_data_from_file(event.src_path)
+        if not event.is_directory and self.is_data_file(event.src_path):
+            assert event.src_path in self._origin_mapped_data
+            self._origin_mapped_data[event.src_path] = self.extract_data_from_file(event.src_path)
+            self.notify_listeners()
 
     def _on_file_deleted(self, event: FileSystemEvent):
         """
         Called when a file in the monitored directory has been deleted.
         :param event: the file system event
         """
-        # TODO: If a directory is deleted, are events generated for just the directory or all of the files in the
-        # directory?
-        if not event.is_directory and InFileDataSource.is_data_file(event.src_path):
-            assert event.src_path in self._file_locations
-            del(self._file_locations[event.src_path])
+        if not event.is_directory and self.is_data_file(event.src_path):
+            assert event.src_path in self._origin_mapped_data
+            del(self._origin_mapped_data[event.src_path])
+            self.notify_listeners()
 
+    @staticmethod
+    def _on_any_event(event: FileSystemEvent):
+        """
+        Called when any file system event was detected
+        :param event: the detected event
+        """
+        logging.debug("File system monitor has detected the event: %s" % event)

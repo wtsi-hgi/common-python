@@ -4,15 +4,19 @@ from typing import Any, List, Callable
 from math import ceil
 
 
-def write_data_to_files_in_temp_directory(data: List[Any], spread_over_n_files: int, separator: str='\n') -> str:
+def write_data_to_files_in_temp_directory(data: List[Any], spread_over_n_files: int, separator: str='\n',
+                                          temp_directory: str=None, file_prefix="") -> str:
     """
     Writes the given data over the given number of files in a temporary directory.
     :param data: the data that is to be written to the files
     :param spread_over_n_files: the number of files in which the data is to be spread over
     :param separator: the separator between data items in each file
+    :param temp_directory: the specific temp directory to use
+    :param file_prefix: TODO
     :return: the location of the temp directory
     """
-    temp_directory = mkdtemp(suffix="hgicommon.tests._helper")
+    if temp_directory is None:
+        temp_directory = mkdtemp(suffix="hgicommon.tests._helper")
 
     datum_per_file = ceil(len(data) / spread_over_n_files)
     for i in range(spread_over_n_files):
@@ -20,7 +24,7 @@ def write_data_to_files_in_temp_directory(data: List[Any], spread_over_n_files: 
         end_at = start_at + datum_per_file
         to_write = separator.join([str(x) for x in data[start_at:end_at]])
 
-        file_location = mkstemp(dir=temp_directory)[1]
+        file_location = mkstemp(dir=temp_directory, prefix=file_prefix)[1]
         with open(file_location, 'w') as file:
             file.write(to_write)
 
