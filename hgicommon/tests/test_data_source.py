@@ -1,6 +1,5 @@
 import copy
 import glob
-import logging
 import os
 import shutil
 import unittest
@@ -10,7 +9,6 @@ from threading import Semaphore
 from typing import Any, List, Tuple
 from unittest.mock import MagicMock
 
-import time
 from watchdog.events import FileSystemEventHandler
 
 from hgicommon.data_source import StaticDataSource, MultiDataSource
@@ -246,9 +244,9 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
 
     def _add_more_data_in_nested_directory(self, number_of_extra_files: int=1) -> Tuple[str, List[int]]:
         """
-        TODO
-        :param number_of_extra_files:
-        :return:
+        Adds more data in a directory nested inside the temp directory.
+        :param number_of_extra_files: (optional) the number of files to put the new data in inside the nested directory
+        :return: a tuple where the first value is the path to the new nested directory and the second is the new data
         """
         nested_directory_path = os.path.join(self.temp_directory, "nested")
         os.makedirs(nested_directory_path)

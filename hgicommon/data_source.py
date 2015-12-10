@@ -3,13 +3,11 @@ import copy
 import glob
 import logging
 from abc import abstractmethod, ABCMeta
+from multiprocessing import Lock
 from typing import Dict
 from typing import Sequence, Iterable, TypeVar, Generic
 
-from multiprocessing import Lock
-
-import time
-from watchdog.events import FileSystemEventHandler, FileSystemEvent, LoggingEventHandler
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
 from hgicommon.mixable import Listenable
@@ -64,12 +62,12 @@ class StaticDataSource(DataSource[SourceDataType]):
 
 class FilesDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
     """
-    TODO
+    Sources data from data files in a given directory.
     """
     def __init__(self, directory_location: str):
         """
         Default constructor.
-        :param directory_location: the location of the processor
+        :param directory_location: the location of the directory that contains files holding data
         """
         super().__init__()
         self._directory_location = directory_location
@@ -123,15 +121,15 @@ class FilesDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
 
 class SynchronisedFilesDataSource(FilesDataSource, Listenable, metaclass=ABCMeta):
     """
-    TODO
+    Synchronises data from data files in a given directory. When the data changes, the data known about at the source is
+    changed. Does not have to read the data on every call to `get_all`.
 
-    Can have listeners which are called when an update to the data is made...
+    Can have listeners which are called when an update to the data is made.
     """
     def __init__(self, directory_location: str):
         """
         Default constructor.
-        :param directory_location:
-        :return:
+        :param directory_location: the location of the directory that contains files holding data
         """
         super().__init__(directory_location)
         self._status_lock = Lock()
