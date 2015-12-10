@@ -1,6 +1,6 @@
 from abc import ABCMeta
-from typing import Generic, Sequence, TypeVar, Callable
-
+from enum import Enum, unique
+from typing import Generic, Sequence, TypeVar, Callable, Optional
 
 _ListenableDataType = TypeVar('_ListenableDataType')
 
@@ -9,6 +9,8 @@ class Listenable(Generic[_ListenableDataType], metaclass=ABCMeta):
     """
     Class on which listeners can be added.
     """
+    _OPTIONAL_SENTINEL = TypeVar("nothing")
+
     def __init__(self):
         self._listeners = []
 
@@ -28,15 +30,18 @@ class Listenable(Generic[_ListenableDataType], metaclass=ABCMeta):
 
     def remove_listener(self, listener: Callable[[_ListenableDataType], None]):
         """
-        Removes a listener
+        Removes a listener.
         :param listener: the event listener to remove
         """
         self._listeners.remove(listener)
 
-    def notify_listeners(self, data: _ListenableDataType):
+    def notify_listeners(self, data: Optional[_ListenableDataType]=_OPTIONAL_SENTINEL):
         """
-        Notify event listeners, passing them the given data
+        Notify event listeners, passing them the given data (if any).
         :param data: the data to pass to the event listeners
         """
         for listener in self._listeners:
-            listener(data)
+            if data is not Listenable._OPTIONAL_SENTINEL:
+                listener(data)
+            else:
+                listener()
