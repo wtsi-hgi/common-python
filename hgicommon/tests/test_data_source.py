@@ -1,7 +1,15 @@
 import copy
+import os
 import unittest
-from tempfile import mkdtemp, mkstemp
+from tempfile import mkdtemp
+from typing import Any
+from unittest.mock import MagicMock
+
+import shutil
+
 from hgicommon.data_source import StaticDataSource, MultiDataSource
+from hgicommon.tests._helpers import write_data_to_files_in_temp_directory, extract_data_from_file
+from hgicommon.tests._stubs import StubInFileDataSource
 
 
 class TestMultiSource(unittest.TestCase):
@@ -50,12 +58,41 @@ class TestInFileDataSource(unittest.TestCase):
     Tests for `InFileDataSource`.
     """
     def setUp(self):
-        self.temp_directory = mkdtemp(self._testMethodName)
-        self.data = [i for i in range(12)]
+        self.maxDiff = None
 
-        mkstemp(dir=self.temp_directory, text=self.data[0:3])
+        self.data = [i for i in range(30)]
+        self.temp_directory = write_data_to_files_in_temp_directory(self.data, 10)
 
-        # TODO
+        def extract_adapter(file_path: str) -> Any:
+            return extract_data_from_file(file_path, parser=lambda data: int(data), separator='\n')
+
+        self.source = StubInFileDataSource(self.temp_directory)
+        self.source.is_data_file = MagicMock(return_value=True)
+        self.source.extract_data_from_file = MagicMock(side_effect=extract_adapter)
+
+    def test_get_all_with_empty_directory(self):
+        empty_directory = mkdtemp(suffix=self._testMethodName)
+        source = StubInFileDataSource(empty_directory)
+
+        retrieved_data = source.get_all()
+        self.assertEquals(len(retrieved_data), 0)
+
+    def test_get_all(self):
+        retrieved_data = self.source.get_all()
+        self.assertCountEqual(retrieved_data, self.data)
+
+    def test_get_all_with_filter(self):
+        def data_filter(file_path: str) -> bool:
+            with open(file_path, 'r') as file:
+                return '29' in file.read()
+
+        self.source.is_data_file = MagicMock(side_effect=data_filter)
+        retrieved_data = self.source.get_all()
+        self.assertCountEqual(retrieved_data, [27, 28, 29])
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_directory)
+        pass
 
 
 

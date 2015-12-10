@@ -1,7 +1,7 @@
 import collections
 import copy
 import glob
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 from threading import Thread
 from typing import Dict
 from typing import Sequence, Iterable, TypeVar, Generic
@@ -59,7 +59,7 @@ class StaticDataSource(DataSource[SourceDataType]):
         return self._data
 
 
-class InFileDataSource(DataSource[SourceDataType]):
+class InFileDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
     """
     TODO
     """
@@ -69,12 +69,10 @@ class InFileDataSource(DataSource[SourceDataType]):
         :param directory_location: the location of the processor
         """
         self._directory_location = directory_location
-        self._observer = None
-        self._file_locations = dict()   # type: Dict[str, SourceDataType]
-        self._load_all_in_directory()
+
 
     @abstractmethod
-    def _extract_data_from_file(self, file_path: str) -> Iterable[SourceDataType]:
+    def extract_data_from_file(self, file_path: str) -> Iterable[SourceDataType]:
         """
         Extracts data from the file at the given file path.
         :param file_path: the path to the file to extract data from
@@ -83,7 +81,7 @@ class InFileDataSource(DataSource[SourceDataType]):
         pass
 
     @abstractmethod
-    def _is_data_file(self, file_path: str) -> bool:
+    def is_data_file(self, file_path: str) -> bool:
         """
         Determines whether the file at the given path is of interest.
         :param file_path: path to the updated file
@@ -92,18 +90,17 @@ class InFileDataSource(DataSource[SourceDataType]):
         pass
 
     def get_all(self) -> Sequence[SourceDataType]:
-        data = []
-        for key, values in self._file_locations.items():
-            data.extend(values)
-        return data
+        return self._load_all_in_directory()
 
-    def _load_all_in_directory(self):
+    def _load_all_in_directory(self) -> Sequence[SourceDataType]:
         """
         TODO
         """
+        data = []
         for file_path in glob.iglob("%s/**/*" % self._directory_location, recursive=True):
-            if self._is_data_file(file_path):
-                self._file_locations[file_path] = self._extract_data_from_file(file_path)
+            if self.is_data_file(file_path):
+                data.extend(self.extract_data_from_file(file_path))
+        return data
 
 
 class SynchronisedInFileDataSource(InFileDataSource):
@@ -119,6 +116,8 @@ class SynchronisedInFileDataSource(InFileDataSource):
         super().__init__(directory_location)
         self._status_lock = Lock()
         self._running = False
+        self._observer = None
+        self._file_locations = dict()   # type: Dict[str, SourceDataType]
 
         self._event_handler = FileSystemEventHandler()
         self._event_handler.on_created = self._on_file_created
@@ -158,9 +157,9 @@ class SynchronisedInFileDataSource(InFileDataSource):
         """
         # TODO: If a directory is created, are events generated for just the directory or all of the files in the
         # directory?
-        if not event.is_directory and InFileDataSource._is_data_file(event.src_path):
+        if not event.is_directory and InFileDataSource.is_data_file(event.src_path):
             assert event.src_path not in self._file_locations
-            self._file_locations[event.src_path] = self._extract_data_from_file(event.src_path)
+            self._file_locations[event.src_path] = self.extract_data_from_file(event.src_path)
 
     def _on_file_modified(self, event: FileSystemEvent):
         """
@@ -169,9 +168,9 @@ class SynchronisedInFileDataSource(InFileDataSource):
         """
         # TODO: If a directory is modified, are events generated for just the directory or all of the files in the
         # directory?
-        if not event.is_directory and InFileDataSource._is_data_file(event.src_path):
+        if not event.is_directory and InFileDataSource.is_data_file(event.src_path):
             assert event.src_path in self._file_locations
-            self._file_locations[event.src_path] = self._extract_data_from_file(event.src_path)
+            self._file_locations[event.src_path] = self.extract_data_from_file(event.src_path)
 
     def _on_file_deleted(self, event: FileSystemEvent):
         """
@@ -180,7 +179,7 @@ class SynchronisedInFileDataSource(InFileDataSource):
         """
         # TODO: If a directory is deleted, are events generated for just the directory or all of the files in the
         # directory?
-        if not event.is_directory and InFileDataSource._is_data_file(event.src_path):
+        if not event.is_directory and InFileDataSource.is_data_file(event.src_path):
             assert event.src_path in self._file_locations
             del(self._file_locations[event.src_path])
 
