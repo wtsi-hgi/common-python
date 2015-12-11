@@ -1,5 +1,6 @@
-# Common Python used in HGI projects
+[![Build Status](https://travis-ci.org/wtsi-hgi/common-python.svg)](https://travis-ci.org/wtsi-hgi/common-python)
 
+# Common Python used in HGI projects
 
 ## How to use in your project
 ### Include the `hgicommon` library
