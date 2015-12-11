@@ -1,18 +1,8 @@
+import copy
 import unittest
 from datetime import date
 
-from hgicommon.models import Model
-
-
-class _StubModel(Model):
-    """
-    Stub `Model`.
-    """
-    def __init__(self):
-        super(Model, self).__init__()
-        self.property_1 = 1
-        self.property_2 = "a"
-        self.property_3 = []
+from hgicommon.tests._stubs import StubModel
 
 
 class TestModel(unittest.TestCase):
@@ -20,7 +10,10 @@ class TestModel(unittest.TestCase):
     Test cases for `Model`.
     """
     def setUp(self):
-        self._model = _StubModel()
+        self._model = StubModel()
+        self._model.property_1 = 1
+        self._model.property_2 = "a"
+        self._model.property_3 = []
 
     def test_equal_non_nullity(self):
         self.assertNotEqual(self._model, None)
@@ -34,14 +27,14 @@ class TestModel(unittest.TestCase):
 
     def test_equal_symmetry(self):
         model1 = self._model
-        model2 = self._model
+        model2 = copy.copy(self._model)
         self.assertEqual(model1, model2)
         self.assertEqual(model2, model1)
 
     def test_equal_transitivity(self):
         model1 = self._model
-        model2 = self._model
-        model3 = self._model
+        model2 = copy.copy(self._model)
+        model3 = copy.copy(self._model)
         self.assertEqual(model1, model2)
         self.assertEqual(model2, model3)
         self.assertEqual(model1, model3)
