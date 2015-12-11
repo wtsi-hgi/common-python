@@ -1,10 +1,9 @@
-from abc import ABCMeta
 from typing import Generic, Sequence, TypeVar, Callable, Optional
 
 _ListenableDataType = TypeVar('_ListenableDataType')
 
 
-class Listenable(Generic[_ListenableDataType], metaclass=ABCMeta):
+class Listenable(Generic[_ListenableDataType]):
     """
     Class on which listeners can be added.
     """

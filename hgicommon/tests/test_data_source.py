@@ -1,17 +1,19 @@
 import copy
 import glob
+import logging
 import os
 import shutil
 import unittest
 from multiprocessing import Lock
 from tempfile import mkdtemp
 from threading import Semaphore
+from time import sleep
 from typing import Any, List, Tuple
 from unittest.mock import MagicMock
 
 from watchdog.events import FileSystemEventHandler
 
-from hgicommon.data_source import StaticDataSource, MultiDataSource
+from hgicommon.data_source import StaticDataSource, MultiDataSource, FileSystemChange
 from hgicommon.tests._helpers import write_data_to_files_in_temp_directory, extract_data_from_file
 from hgicommon.tests._stubs import StubFilesDataSource, StubSynchronisedInFileDataSource
 
@@ -152,10 +154,15 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
         self._block_until_source_started()
 
         change_trigger = Semaphore(0)
-        self.source.add_listener(change_trigger.release)
+
+        def on_change(change: FileSystemChange):
+            if change == FileSystemChange.CREATE:
+                change_trigger.release()
+
+        self.source.add_listener(on_change)
 
         more_data = [i for i in range(50)]
-        write_data_to_files_in_temp_directory(more_data, 10, temp_directory=self.temp_directory,
+        write_data_to_files_in_temp_directory(more_data, 10, dir=self.temp_directory,
                                               file_prefix=TestSynchronisedFilesDataSource._FILE_PREFIX)
         even_more_data = self._add_more_data_in_nested_directory(10)[1]
 
@@ -164,8 +171,8 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
             change_trigger.acquire()
             triggers += 1
 
+        logging.debug(self.source._origin_mapped_data)
         self.assertCountEqual(self.source.get_all(), self.data + more_data + even_more_data)
-
 
     def test_get_all_when_file_deleted(self):
         self.source.start()
@@ -173,7 +180,12 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
 
         change_lock = Lock()
         change_lock.acquire()
-        self.source.add_listener(change_lock.release)
+
+        def on_change(change: FileSystemChange):
+            if change == FileSystemChange.DELETE:
+                change_lock.release()
+
+        self.source.add_listener(on_change)
 
         to_delete_file_path = glob.glob("%s/*" % self.temp_directory)[0]
         deleted_data = extract_data_from_file(to_delete_file_path, parser=lambda data: int(data), separator='\n')
@@ -191,7 +203,12 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
 
         change_lock = Lock()
         change_lock.acquire()
-        self.source.add_listener(change_lock.release)
+
+        def on_change(change: FileSystemChange):
+            if change == FileSystemChange.DELETE:
+                change_lock.release()
+
+        self.source.add_listener(on_change)
 
         shutil.rmtree(nested_directory_path)
 
@@ -205,7 +222,12 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
 
         change_lock = Lock()
         change_lock.acquire()
-        self.source.add_listener(change_lock.release)
+
+        def on_change(change: FileSystemChange):
+            if change == FileSystemChange.MODIFY:
+                change_lock.release()
+
+        self.source.add_listener(on_change)
 
         to_modify_file_path = glob.glob("%s/*" % self.temp_directory)[0]
         to_modify = extract_data_from_file(to_modify_file_path, parser=lambda data: int(data), separator='\n')
@@ -237,6 +259,7 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
         while blocked:
             with open(temp_file_path, 'a') as file:
                 file.write(str(i))
+            sleep(10 / 1000)
             i += 1
 
         # XXX: Not removing the temp file to avoid the notification.
@@ -251,11 +274,12 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
         nested_directory_path = os.path.join(self.temp_directory, "nested")
         os.makedirs(nested_directory_path)
         more_data = [i for i in range(50)]
-        write_data_to_files_in_temp_directory(more_data, number_of_extra_files, temp_directory=nested_directory_path,
+        write_data_to_files_in_temp_directory(more_data, number_of_extra_files, dir=nested_directory_path,
                                               file_prefix=TestSynchronisedFilesDataSource._FILE_PREFIX)
         return (nested_directory_path, more_data)
 
     def tearDown(self):
+        self.source.stop()
         shutil.rmtree(self.temp_directory)
 
 

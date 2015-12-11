@@ -1,22 +1,23 @@
+import os
 from tempfile import mkdtemp, mkstemp
 from typing import Any, List, Callable
 
 from math import ceil
 
 
-def write_data_to_files_in_temp_directory(data: List[Any], spread_over_n_files: int, separator: str='\n',
-                                          temp_directory: str=None, file_prefix="") -> str:
+def write_data_to_files_in_temp_directory(data: List[Any], spread_over_n_files: int, separator: str='\n', dir: str=None,
+                                          file_prefix="") -> str:
     """
     Writes the given data over the given number of files in a temporary directory.
     :param data: the data that is to be written to the files
     :param spread_over_n_files: the number of files in which the data is to be spread over
     :param separator: the separator between data items in each file
-    :param temp_directory: the specific temp directory to use
+    :param dir: the specific temp directory to use
     :param file_prefix: prefix to the files created
     :return: the location of the temp directory
     """
-    if temp_directory is None:
-        temp_directory = mkdtemp(suffix=write_data_to_files_in_temp_directory.__name__)
+    if dir is None:
+        dir = mkdtemp(suffix=write_data_to_files_in_temp_directory.__name__)
 
     datum_per_file = ceil(len(data) / spread_over_n_files)
     for i in range(spread_over_n_files):
@@ -24,11 +25,28 @@ def write_data_to_files_in_temp_directory(data: List[Any], spread_over_n_files: 
         end_at = start_at + datum_per_file
         to_write = separator.join([str(x) for x in data[start_at:end_at]])
 
-        file_location = mkstemp(dir=temp_directory, prefix=file_prefix)[1]
-        with open(file_location, 'w') as file:
-            file.write(to_write)
+        atomic_write_to_temp_file(dir, to_write, file_prefix=file_prefix)
 
-    return temp_directory
+    return dir
+
+
+def atomic_write_to_temp_file(dir: str, contents: str, file_prefix="") -> str:
+    """
+    TODO
+    :param dir:
+    :param contents:
+    :param file_prefix:
+    :return:
+    """
+    temp_temp_file_location = mkstemp(dir=dir, prefix=file_prefix)[1]
+    destination = os.path.join(dir, os.path.basename(temp_temp_file_location))
+
+    with open(temp_temp_file_location, 'w') as file:
+        file.write(contents)
+
+    os.rename(temp_temp_file_location, destination)
+
+    return destination
 
 
 def extract_data_from_file(file_location: str, parser: Callable[[str], Any]=lambda data: data, separator: str=None) \

@@ -3,6 +3,7 @@ import copy
 import glob
 import logging
 from abc import abstractmethod, ABCMeta
+from enum import Enum, unique
 from multiprocessing import Lock
 from typing import Dict
 from typing import Sequence, Iterable, TypeVar, Generic
@@ -119,7 +120,17 @@ class FilesDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
         return data
 
 
-class SynchronisedFilesDataSource(FilesDataSource, Listenable, metaclass=ABCMeta):
+@unique
+class FileSystemChange(Enum):
+    """
+    TODO
+    """
+    MODIFY = 1
+    CREATE = 2
+    DELETE = 3
+
+
+class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange], metaclass=ABCMeta):
     """
     Synchronises data from data files in a given directory. When the data changes, the data known about at the source is
     changed. Does not have to read the data on every call to `get_all`.
@@ -187,7 +198,7 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable, metaclass=ABCMeta
         if not event.is_directory and self.is_data_file(event.src_path):
             assert event.src_path not in self._origin_mapped_data
             self._origin_mapped_data[event.src_path] = self.extract_data_from_file(event.src_path)
-            self.notify_listeners()
+            self.notify_listeners(FileSystemChange.CREATE)
 
     def _on_file_modified(self, event: FileSystemEvent):
         """
@@ -197,7 +208,7 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable, metaclass=ABCMeta
         if not event.is_directory and self.is_data_file(event.src_path):
             assert event.src_path in self._origin_mapped_data
             self._origin_mapped_data[event.src_path] = self.extract_data_from_file(event.src_path)
-            self.notify_listeners()
+            self.notify_listeners(FileSystemChange.MODIFY)
 
     def _on_file_deleted(self, event: FileSystemEvent):
         """
@@ -207,7 +218,7 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable, metaclass=ABCMeta
         if not event.is_directory and self.is_data_file(event.src_path):
             assert event.src_path in self._origin_mapped_data
             del(self._origin_mapped_data[event.src_path])
-            self.notify_listeners()
+            self.notify_listeners(FileSystemChange.DELETE)
 
     @staticmethod
     def _on_any_event(event: FileSystemEvent):
