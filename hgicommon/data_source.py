@@ -16,11 +16,12 @@ from hgicommon.mixable import Listenable
 SourceDataType = TypeVar('T')
 
 
-# XXX: Making this abstract for some reason interferes with generics
 class DataSource(Generic[SourceDataType]):
     """
     A source of instances of `SourceDataType`.
     """
+    __metaclass__ = ABCMeta
+
     @abstractmethod
     def get_all(self) -> Sequence[SourceDataType]:
         """
@@ -61,10 +62,12 @@ class StaticDataSource(DataSource[SourceDataType]):
         return self._data
 
 
-class FilesDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
+class FilesDataSource(DataSource[SourceDataType]):
     """
     Sources data from data files in a given directory.
     """
+    __metaclass__ = ABCMeta
+
     def __init__(self, directory_location: str):
         """
         Default constructor.
@@ -130,13 +133,15 @@ class FileSystemChange(Enum):
     DELETE = 3
 
 
-class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange], metaclass=ABCMeta):
+class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange]):
     """
     Synchronises data from data files in a given directory. When the data changes, the data known about at the source is
     changed. Does not have to read the data on every call to `get_all`.
 
     Can have listeners which are called when an update to the data is made.
     """
+    __metaclass__ = ABCMeta
+
     def __init__(self, directory_location: str):
         """
         Default constructor.
