@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 
 from watchdog.events import FileSystemEventHandler
 
-from hgicommon.data_source import StaticDataSource, MultiDataSource, FileSystemChange
+from hgicommon.data_source import ListDataSource, MultiDataSource, FileSystemChange
 from hgicommon.tests._helpers import write_data_to_files_in_temp_directory, extract_data_from_file
 from hgicommon.tests._stubs import StubFilesDataSource, StubSynchronisedInFileDataSource
 
@@ -24,7 +24,7 @@ class TestMultiDataSource(unittest.TestCase):
     """
     def setUp(self):
         self.data = [i for i in range(10)]
-        self.sources = [StaticDataSource([self.data[i]]) for i in range(len(self.data))]
+        self.sources = [ListDataSource([self.data[i]]) for i in range(len(self.data))]
 
     def test_init_change_of_source_list_has_no_effect(self):
         source = MultiDataSource(self.sources)
@@ -41,21 +41,20 @@ class TestMultiDataSource(unittest.TestCase):
         self.assertCountEqual(source.get_all(), self.data)
 
 
-class TestStaticDataSource(unittest.TestCase):
+class TestListDataSource(unittest.TestCase):
     """
-    Tests for `StaticDataSource`.
+    Tests for `ListDataSource`.
     """
     def setUp(self):
         self.data = [i for i in range(10)]
 
-    def test_init_change_of_source_list_has_no_effect(self):
-        data = copy.copy(self.data)
-        source = StaticDataSource(data)
-        data.pop()
+    def test_init_list_can_be_changed(self):
+        source = ListDataSource(self.data)
+        self.data.append(11)
         self.assertCountEqual(source.get_all(), self.data)
 
     def test_get_all(self):
-        source = StaticDataSource(self.data)
+        source = ListDataSource(self.data)
         self.assertCountEqual(source.get_all(), self.data)
 
 

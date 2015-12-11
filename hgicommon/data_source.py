@@ -5,7 +5,7 @@ import logging
 from abc import abstractmethod, ABCMeta
 from enum import Enum, unique
 from multiprocessing import Lock
-from typing import Dict
+from typing import Dict, List
 from typing import Sequence, Iterable, TypeVar, Generic
 
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
@@ -49,17 +49,17 @@ class MultiDataSource(DataSource[SourceDataType]):
         return aggregated
 
 
-class StaticDataSource(DataSource[SourceDataType]):
+class ListDataSource(DataSource[SourceDataType]):
     """
-    Static source of data.
+    Data source where data is stored in a (changable) list.
     """
-    def __init__(self, data: Iterable[SourceDataType]):
-        if not isinstance(data, collections.Iterable):
-            raise ValueError("Data must be iterable")
-        self._data = copy.copy(data)
+    def __init__(self, data: List[SourceDataType]=None):
+        if data is None:
+            data = []
+        self.data = data
 
     def get_all(self) -> Sequence[SourceDataType]:
-        return self._data
+        return self.data
 
 
 class FilesDataSource(DataSource[SourceDataType]):
