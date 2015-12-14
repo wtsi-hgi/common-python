@@ -1,65 +1,18 @@
-import collections
-import copy
 import glob
 import logging
-from abc import abstractmethod, ABCMeta
-from enum import Enum, unique
+from abc import ABCMeta
+from abc import abstractmethod
+from enum import unique, Enum
 from multiprocessing import Lock
-from typing import Dict, List
-from typing import Sequence, Iterable, TypeVar, Generic
+from typing import Iterable, Dict
+from typing import Sequence
 
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
+from hgicommon.data_source import DataSource
+from hgicommon.data_source.basic import SourceDataType
 from hgicommon.mixable import Listenable
-
-SourceDataType = TypeVar('T')
-
-
-class DataSource(Generic[SourceDataType]):
-    """
-    A source of instances of `SourceDataType`.
-    """
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def get_all(self) -> Sequence[SourceDataType]:
-        """
-        Gets the data aty the source
-        :return: instances of `SourceDataType`
-        """
-        pass
-
-
-class MultiDataSource(DataSource[SourceDataType]):
-    """
-    Aggregator of instances of data from multiple sources.
-    """
-    def __init__(self, sources: Iterable[DataSource]=()):
-        """
-        Constructor.
-        :param sources: the sources of instances of `SourceDataType`
-        """
-        self.sources = copy.copy(sources)
-
-    def get_all(self) -> Sequence[SourceDataType]:
-        aggregated = []
-        for source in self.sources:
-            aggregated.extend(source.get_all())
-        return aggregated
-
-
-class ListDataSource(DataSource[SourceDataType]):
-    """
-    Data source where data is stored in a (changable) list.
-    """
-    def __init__(self, data: List[SourceDataType]=None):
-        if data is None:
-            data = []
-        self.data = data
-
-    def get_all(self) -> Sequence[SourceDataType]:
-        return self.data
 
 
 class FilesDataSource(DataSource[SourceDataType]):
@@ -126,7 +79,7 @@ class FilesDataSource(DataSource[SourceDataType]):
 @unique
 class FileSystemChange(Enum):
     """
-    TODO
+    Change state of file in file system.
     """
     MODIFY = 1
     CREATE = 2

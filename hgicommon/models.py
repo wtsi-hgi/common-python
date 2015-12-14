@@ -1,5 +1,9 @@
 from abc import ABCMeta
 from collections import Sized
+from enum import Enum
+from enum import unique
+from typing import Generic
+from typing import TypeVar
 
 from hgicommon.enums import ComparisonOperator
 
@@ -53,3 +57,29 @@ class File(Model):
         :return: if the file is a directory
         """
         return self.file_name is None
+
+
+# The type of the object that is registered
+_RegistrationTarget = TypeVar('T')
+
+
+class RegistrationEvent(Generic[_RegistrationTarget], Model):
+    """
+    A model of a registration update.
+    """
+    @unique
+    class Type(Enum):
+        """
+        The type of event.
+        """
+        REGISTERED = 0
+        UNREGISTERED = 1
+
+    def __init__(self, target: _RegistrationTarget, event_type: Type):
+        """
+        Constructor.
+        :param target: the object the event refers to
+        :param event_type: the type of update event
+        """
+        self.target = target
+        self.event_type = event_type
