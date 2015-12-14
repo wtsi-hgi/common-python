@@ -1,70 +1,26 @@
-import collections
-import copy
 import glob
 import logging
-from abc import abstractmethod, ABCMeta
-from enum import Enum, unique
+from abc import ABCMeta
+from abc import abstractmethod
+from enum import unique, Enum
 from multiprocessing import Lock
-from typing import Dict
-from typing import Sequence, Iterable, TypeVar, Generic
+from typing import Iterable, Dict
+from typing import Sequence
 
 from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
+from hgicommon.data_source import DataSource
+from hgicommon.data_source.basic import SourceDataType
 from hgicommon.mixable import Listenable
 
-SourceDataType = TypeVar('T')
 
-
-# XXX: Making this abstract for some reason interferes with generics
-class DataSource(Generic[SourceDataType]):
-    """
-    A source of instances of `SourceDataType`.
-    """
-    @abstractmethod
-    def get_all(self) -> Sequence[SourceDataType]:
-        """
-        Gets the data aty the source
-        :return: instances of `SourceDataType`
-        """
-        pass
-
-
-class MultiDataSource(DataSource[SourceDataType]):
-    """
-    Aggregator of instances of data from multiple sources.
-    """
-    def __init__(self, sources: Iterable[DataSource]=()):
-        """
-        Constructor.
-        :param sources: the sources of instances of `SourceDataType`
-        """
-        self.sources = copy.copy(sources)
-
-    def get_all(self) -> Sequence[SourceDataType]:
-        aggregated = []
-        for source in self.sources:
-            aggregated.extend(source.get_all())
-        return aggregated
-
-
-class StaticDataSource(DataSource[SourceDataType]):
-    """
-    Static source of data.
-    """
-    def __init__(self, data: Iterable[SourceDataType]):
-        if not isinstance(data, collections.Iterable):
-            raise ValueError("Data must be iterable")
-        self._data = copy.copy(data)
-
-    def get_all(self) -> Sequence[SourceDataType]:
-        return self._data
-
-
-class FilesDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
+class FilesDataSource(DataSource[SourceDataType]):
     """
     Sources data from data files in a given directory.
     """
+    __metaclass__ = ABCMeta
+
     def __init__(self, directory_location: str):
         """
         Default constructor.
@@ -123,20 +79,22 @@ class FilesDataSource(DataSource[SourceDataType], metaclass=ABCMeta):
 @unique
 class FileSystemChange(Enum):
     """
-    TODO
+    Change state of file in file system.
     """
     MODIFY = 1
     CREATE = 2
     DELETE = 3
 
 
-class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange], metaclass=ABCMeta):
+class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange]):
     """
     Synchronises data from data files in a given directory. When the data changes, the data known about at the source is
     changed. Does not have to read the data on every call to `get_all`.
 
     Can have listeners which are called when an update to the data is made.
     """
+    __metaclass__ = ABCMeta
+
     def __init__(self, directory_location: str):
         """
         Default constructor.
