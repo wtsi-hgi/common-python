@@ -93,7 +93,7 @@ class TestRegisteringDataSource(unittest.TestCase):
         with open(rule_file_location, 'w') as file:
             file.write("~")
 
-        logging.basicConfig(level=logging.ERROR)
+        logging.root.setLevel(level=logging.ERROR)
         self.source.extract_data_from_file(rule_file_location)
         # Asserting no exception is raised
 

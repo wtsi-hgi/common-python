@@ -6,16 +6,14 @@ import unittest
 from multiprocessing import Lock
 from tempfile import mkdtemp
 from threading import Semaphore
-from time import sleep
 from typing import Any, List, Tuple
 from unittest.mock import MagicMock
 
-from hgicommon.tests.data_source._stubs import StubSynchronisedInFileDataSource
-from watchdog.events import FileSystemEventHandler
-
 from hgicommon.data_source.static_from_file import FileSystemChange
 from hgicommon.tests._helpers import write_data_to_files_in_temp_directory, extract_data_from_file
+from hgicommon.tests.data_source._helpers import block_until_synchronised_files_data_source_started
 from hgicommon.tests.data_source._stubs import StubFilesDataSource
+from hgicommon.tests.data_source._stubs import StubSynchronisedInFileDataSource
 
 
 class TestFilesDataSource(unittest.TestCase):
@@ -110,7 +108,7 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
 
     def test_get_all_when_file_created(self):
         self.source.start()
-        self._block_until_source_started()
+        block_until_synchronised_files_data_source_started(self.source)
 
         change_trigger = Semaphore(0)
 
@@ -135,7 +133,7 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
 
     def test_get_all_when_file_deleted(self):
         self.source.start()
-        self._block_until_source_started()
+        block_until_synchronised_files_data_source_started(self.source)
 
         change_lock = Lock()
         change_lock.acquire()
@@ -158,7 +156,7 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
         nested_directory_path = self._add_more_data_in_nested_directory()[0]
 
         self.source.start()
-        self._block_until_source_started()
+        block_until_synchronised_files_data_source_started(self.source)
 
         change_lock = Lock()
         change_lock.acquire()
@@ -177,7 +175,7 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
 
     def test_get_all_when_file_modified(self):
         self.source.start()
-        self._block_until_source_started()
+        block_until_synchronised_files_data_source_started(self.source)
 
         change_lock = Lock()
         change_lock.acquire()
@@ -197,32 +195,6 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
         change_lock.acquire()
 
         self.assertCountEqual(self.source.get_all(), [x for x in self.data if x not in to_modify] + modified)
-
-    def _block_until_source_started(self):
-        """
-        Blocks until the source has started to notice changes in the file system (may be a few milliseconds after it has
-        been started.
-        """
-        blocked = True
-
-        def unblock(*args):
-            nonlocal blocked
-            blocked = False
-
-        event_handler = FileSystemEventHandler()
-        event_handler.on_modified = unblock
-        self.source._observer.schedule(event_handler, self.temp_directory, recursive=True)
-
-        temp_file_path = os.path.join(self.temp_directory, ".temp")
-        i = 0
-        while blocked:
-            with open(temp_file_path, 'a') as file:
-                file.write(str(i))
-            sleep(10 / 1000)
-            i += 1
-
-        # XXX: Not removing the temp file to avoid the notification.
-        # XXX: Not unscheduling as observer does not like it for some reason.
 
     def _add_more_data_in_nested_directory(self, number_of_extra_files: int=1) -> Tuple[str, List[int]]:
         """
