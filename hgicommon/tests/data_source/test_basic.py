@@ -33,7 +33,13 @@ class TestListDataSource(unittest.TestCase):
     def setUp(self):
         self.data = [i for i in range(10)]
 
-    def test_init_list_can_be_changed(self):
+    def test_init_data_optional(self):
+        source = ListDataSource()
+        for datum in self.data:
+            source.data.append(datum)
+        self.assertCountEqual(source.get_all(), self.data)
+
+    def test_init_data_can_be_changed(self):
         source = ListDataSource(self.data)
         self.data.append(11)
         self.assertCountEqual(source.get_all(), self.data)

@@ -25,18 +25,18 @@ def write_data_to_files_in_temp_directory(data: List[Any], spread_over_n_files: 
         end_at = start_at + datum_per_file
         to_write = separator.join([str(x) for x in data[start_at:end_at]])
 
-        atomic_write_to_temp_file(dir, to_write, file_prefix=file_prefix)
+        write_to_temp_file(dir, to_write, file_prefix=file_prefix)
 
     return dir
 
 
-def atomic_write_to_temp_file(dir: str, contents: str, file_prefix="") -> str:
+def write_to_temp_file(dir: str, contents: str, file_prefix="") -> str:
     """
-    TODO
-    :param dir:
-    :param contents:
-    :param file_prefix:
-    :return:
+    Writes the given contents to a temp file, with the given name prefix, within the given directory.
+    :param dir: the directory to place the temp file in
+    :param contents: the contents of the temp file
+    :param file_prefix: (optional) name prefix of the temp file
+    :return: the path to the created temp file
     """
     temp_temp_file_location = mkstemp(dir=dir, prefix=file_prefix)[1]
     destination = os.path.join(dir, os.path.basename(temp_temp_file_location))
@@ -52,11 +52,11 @@ def atomic_write_to_temp_file(dir: str, contents: str, file_prefix="") -> str:
 def extract_data_from_file(file_location: str, parser: Callable[[str], Any]=lambda data: data, separator: str=None) \
         -> List[Any]:
     """
-    TODO
-    :param file_location:
-    :param parser:
-    :param separator:
-    :return:
+    Extracts data from the file at the given location, using the given parser.
+    :param file_location: the location of the file to read data from
+    :param parser: the parser to extract data from the file
+    :param separator: (optional) separator for data in the file
+    :return: the extracted data
     """
     with open(file_location, 'r') as file:
         contents = file.read()

@@ -1,20 +1,20 @@
 from abc import ABCMeta,abstractmethod
 from typing import Generic, Sequence, TypeVar
 
-SourceDataType = TypeVar('T')
+DataSourceType = TypeVar("T")
 
 
-class DataSource(Generic[SourceDataType]):
+class DataSource(Generic[DataSourceType]):
     """
-    A source of instances of `SourceDataType`.
+    A source of instances of `DataSourceType`.
     """
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_all(self) -> Sequence[SourceDataType]:
+    def get_all(self) -> Sequence[DataSourceType]:
         """
-        Gets the data aty the source
-        :return: instances of `SourceDataType`
+        Gets the data at the source.
+        :return: instances of `DataSourceType`
         """
         pass
 

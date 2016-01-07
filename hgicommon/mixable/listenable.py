@@ -1,13 +1,13 @@
 from typing import Generic, Sequence, TypeVar, Callable, Optional
 
-_ListenableDataType = TypeVar('_ListenableDataType')
+_ListenableDataType = TypeVar("ListenableDataType")
 
 
 class Listenable(Generic[_ListenableDataType]):
     """
     Class on which listeners can be added.
     """
-    _OPTIONAL_SENTINEL = TypeVar("nothing")
+    _PLACEHOLDER = TypeVar("nothing")
 
     def __init__(self):
         self._listeners = []
@@ -33,13 +33,13 @@ class Listenable(Generic[_ListenableDataType]):
         """
         self._listeners.remove(listener)
 
-    def notify_listeners(self, data: Optional[_ListenableDataType]=_OPTIONAL_SENTINEL):
+    def notify_listeners(self, data: Optional[_ListenableDataType]=_PLACEHOLDER):
         """
         Notify event listeners, passing them the given data (if any).
         :param data: the data to pass to the event listeners
         """
         for listener in self._listeners:
-            if data is not Listenable._OPTIONAL_SENTINEL:
+            if data is not Listenable._PLACEHOLDER:
                 listener(data)
             else:
                 listener()

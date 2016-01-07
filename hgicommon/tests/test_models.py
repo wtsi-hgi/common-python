@@ -43,6 +43,10 @@ class TestModel(unittest.TestCase):
         string_representation = str(self._model)
         self.assertTrue(isinstance(string_representation, str))
 
+    def test_can_get_representation(self):
+        string_representation = repr(self._model)
+        self.assertTrue(isinstance(string_representation, str))
+
 
 if __name__ == "__main__":
     unittest.main()

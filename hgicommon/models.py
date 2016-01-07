@@ -1,5 +1,4 @@
 from abc import ABCMeta
-from collections import Sized
 from enum import Enum
 from enum import unique
 from typing import Generic
@@ -41,22 +40,6 @@ class SearchCriterion(Model):
         self.attribute = attribute
         self.value = value
         self.comparison_operator = comparison_operator
-
-
-class File(Model):
-    """
-    Model of a file.
-    """
-    def __init__(self, directory: str, file_name: str=None):
-        self.directory = directory
-        self.file_name = file_name
-
-    def is_directory(self):
-        """
-        Whether the file represents a directory.
-        :return: if the file is a directory
-        """
-        return self.file_name is None
 
 
 # The type of the object that is registered
