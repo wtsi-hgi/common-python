@@ -6,7 +6,7 @@ from importlib.util import module_from_spec, spec_from_file_location
 from multiprocessing import Lock
 from typing import Any, Iterable
 
-from hgicommon.data_source.basic import SourceDataType
+from hgicommon.data_source.basic import DataSourceType
 
 from hgicommon.data_source.static_from_file import SynchronisedFilesDataSource
 
@@ -48,7 +48,7 @@ class RegisteringDataSource(SynchronisedFilesDataSource):
 
     # Global lock to allow multiple instances that source data of the same type to work (i.e. they do not capture
     # definitions loaded by other sources
-    _load_locks = defaultdict(Lock)     # type: defaultdict[type, Lock]
+    _load_locks = defaultdict(Lock)  # type: defaultdict[type, Lock]
 
     def __init__(self, directory_location: str, data_type: type):
         """
@@ -59,13 +59,12 @@ class RegisteringDataSource(SynchronisedFilesDataSource):
         super().__init__(directory_location)
         self._data_type = data_type
 
-    def extract_data_from_file(self, file_path: str) -> Iterable[SourceDataType]:
+    def extract_data_from_file(self, file_path: str) -> Iterable[DataSourceType]:
         assert self.is_data_file(file_path)
         logging.info("Loading `%s` from: %s" % (self._data_type, file_path))
 
         if file_path.rsplit(".")[-1] != "py":
-            logging.warning("Can only import uncompiled python modules that have the extension \".py\"")
-            return []
+            raise RuntimeError("Can only import uncompiled python modules that have the extension \".py\"")
 
         loaded = None
 
@@ -79,16 +78,13 @@ class RegisteringDataSource(SynchronisedFilesDataSource):
 
         try:
             RegisteringDataSource._load_module(file_path)
-        except Exception as e:
-            logging.warning("Failed import of \"%s\": %s" % (file_path, e))
         finally:
-            registration_event_listenable_map[self._data_type].remove_listener(registration_event_listener)
             RegisteringDataSource._load_locks[self._data_type].release()
+            registration_event_listenable_map[self._data_type].remove_listener(registration_event_listener)
 
         if loaded is None:
-            logging.warning(
-                "Module \"%s\" failed to register an object of the type `%s`" % (file_path, self._data_type))
-            return []
+            raise RuntimeError(
+                    "Module \"%s\" failed to register an object of the type `%s`" % (file_path, self._data_type))
         else:
             return [loaded]
 

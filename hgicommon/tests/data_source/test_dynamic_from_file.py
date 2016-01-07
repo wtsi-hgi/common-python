@@ -94,8 +94,15 @@ class TestRegisteringDataSource(unittest.TestCase):
             file.write("~")
 
         logging.root.setLevel(level=logging.ERROR)
-        self.source.extract_data_from_file(rule_file_location)
-        # Asserting no exception is raised
+        self.assertRaises(Exception, self.source.extract_data_from_file, rule_file_location)
+
+    def test_extract_data_from_file_with_wrong_file_extension(self):
+        rule_file_location = self._create_data_file_in_temp_directory()
+        new_rule_file_location = rule_file_location + "c"
+        os.rename(rule_file_location, new_rule_file_location)
+
+        logging.root.setLevel(level=logging.ERROR)
+        self.assertRaises(Exception, self.source.extract_data_from_file, new_rule_file_location)
 
     def _create_data_file_in_temp_directory(self) -> str:
         """

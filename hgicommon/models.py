@@ -1,5 +1,4 @@
 from abc import ABCMeta
-from collections import Sized
 from enum import Enum
 from enum import unique
 from typing import Generic

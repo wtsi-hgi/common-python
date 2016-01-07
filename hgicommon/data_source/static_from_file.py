@@ -11,11 +11,11 @@ from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
 from hgicommon.data_source import DataSource
-from hgicommon.data_source.basic import SourceDataType
+from hgicommon.data_source.basic import DataSourceType
 from hgicommon.mixable import Listenable
 
 
-class FilesDataSource(DataSource[SourceDataType]):
+class FilesDataSource(DataSource[DataSourceType]):
     """
     Sources data from data files in a given directory.
     """
@@ -29,9 +29,8 @@ class FilesDataSource(DataSource[SourceDataType]):
         super().__init__()
         self._directory_location = directory_location
 
-
     @abstractmethod
-    def extract_data_from_file(self, file_path: str) -> Iterable[SourceDataType]:
+    def extract_data_from_file(self, file_path: str) -> Iterable[DataSourceType]:
         """
         Extracts data from the file at the given file path.
         :param file_path: the path to the file to extract data from
@@ -48,23 +47,35 @@ class FilesDataSource(DataSource[SourceDataType]):
         """
         pass
 
-    def get_all(self) -> Sequence[SourceDataType]:
+    def get_all(self) -> Sequence[DataSourceType]:
         return FilesDataSource._extract_data_from_origin_map(self._load_all_in_directory())
 
-    def _load_all_in_directory(self) -> Dict[str, Iterable[SourceDataType]]:
+    def no_error_extract_data_from_file(self, file_path: str) -> Iterable[DataSourceType]:
+        """
+        Proxy for `extract_data_from_file` that suppresses any errors and instead just returning an empty list.
+        :param file_path: see `extract_data_from_file`
+        :return: see `extract_data_from_file`
+        """
+        try:
+            return self.extract_data_from_file(file_path)
+        except Exception as e:
+            logging.warning(e)
+            return []
+
+    def _load_all_in_directory(self) -> Dict[str, Iterable[DataSourceType]]:
         """
         Loads all of the data from the files in directory location.
         :return: a origin map of all the loaded data
         """
-        origin_mapped_data = dict()    # type: Dict[str, Iterable[SourceDataType]]
+        origin_mapped_data = dict()    # type: Dict[str, Iterable[DataSourceType]]
         for file_path in glob.iglob("%s/**/*" % self._directory_location, recursive=True):
             if self.is_data_file(file_path):
-                origin_mapped_data[file_path] = self.extract_data_from_file(file_path)
+                origin_mapped_data[file_path] = self.no_error_extract_data_from_file(file_path)
         return origin_mapped_data
 
     @staticmethod
-    def _extract_data_from_origin_map(origin_mapped_data: Dict[str, Iterable[SourceDataType]]) \
-            -> Iterable[SourceDataType]:
+    def _extract_data_from_origin_map(origin_mapped_data: Dict[str, Iterable[DataSourceType]]) \
+            -> Iterable[DataSourceType]:
         """
         Extracts the data from a data origin map.
         :param origin_mapped_data: a map containing the origin of the data as the key string and the data as the value
@@ -104,7 +115,7 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange])
         self._status_lock = Lock()
         self._running = False
         self._observer = None
-        self._origin_mapped_data = dict()   # type: Dict[str, SourceDataType]
+        self._origin_mapped_data = dict()   # type: Dict[str, DataSourceType]
 
         self._event_handler = FileSystemEventHandler()
         self._event_handler.on_created = self._on_file_created
@@ -112,7 +123,7 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange])
         self._event_handler.on_deleted = self._on_file_deleted
         self._event_handler.on_any_event = SynchronisedFilesDataSource._on_any_event
 
-    def get_all(self) -> Sequence[SourceDataType]:
+    def get_all(self) -> Sequence[DataSourceType]:
         if not self._running:
             raise RuntimeError("Not started")
 
@@ -155,7 +166,7 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange])
         """
         if not event.is_directory and self.is_data_file(event.src_path):
             assert event.src_path not in self._origin_mapped_data
-            self._origin_mapped_data[event.src_path] = self.extract_data_from_file(event.src_path)
+            self._origin_mapped_data[event.src_path] = self.no_error_extract_data_from_file(event.src_path)
             self.notify_listeners(FileSystemChange.CREATE)
 
     def _on_file_modified(self, event: FileSystemEvent):
@@ -165,7 +176,7 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange])
         """
         if not event.is_directory and self.is_data_file(event.src_path):
             assert event.src_path in self._origin_mapped_data
-            self._origin_mapped_data[event.src_path] = self.extract_data_from_file(event.src_path)
+            self._origin_mapped_data[event.src_path] = self.no_error_extract_data_from_file(event.src_path)
             self.notify_listeners(FileSystemChange.MODIFY)
 
     def _on_file_deleted(self, event: FileSystemEvent):

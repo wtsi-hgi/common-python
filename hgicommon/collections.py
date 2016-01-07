@@ -1,6 +1,6 @@
 from typing import Sequence, Sized
 
-from hgicommon.models import SearchCriterion, Model
+from hgicommon.models import SearchCriterion
 
 
 class SearchCriteria(list):

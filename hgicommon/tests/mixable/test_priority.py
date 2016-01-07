@@ -27,6 +27,9 @@ class TestPriority(unittest.TestCase):
         higher = Priority.get_higher_priority_value(Priority.MIN_PRIORITY)
         self.assertLess(abs(higher - Priority.MIN_PRIORITY), abs(Priority.MAX_PRIORITY - Priority.MIN_PRIORITY))
 
+    def test_get_higher_priority_value_if_already_maximum(self):
+        self.assertRaises(ValueError, Priority.get_higher_priority_value, Priority.MAX_PRIORITY)
+
     def test_work_in_priority_queue(self):
         queue = PriorityQueue()
         priorities = [self.medium_priority, self.low_priority, self.high_priority]
