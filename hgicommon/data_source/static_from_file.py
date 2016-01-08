@@ -97,6 +97,10 @@ class FileSystemChange(Enum):
     DELETE = 3
 
 
+# TODO: signature should be:
+# class SynchronisedFilesDataSource(FilesDataSource[DataSourceType], Listenable[FileSystemChange]):
+# However, Python's current implementation of generics does not like this (subclasses need to give to types as generic
+# parameters opposed to one.
 class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange]):
     """
     Synchronises data from data files in a given directory. When the data changes, the data known about at the source is

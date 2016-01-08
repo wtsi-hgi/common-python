@@ -1,8 +1,8 @@
 from typing import Iterable
 
-from hgicommon.data_source.static_from_file import FilesDataSource, SynchronisedFilesDataSource
 from hgicommon.data_source.common import DataSourceType
 from hgicommon.data_source.dynamic_from_file import RegisteringDataSource
+from hgicommon.data_source.static_from_file import FilesDataSource, SynchronisedFilesDataSource
 from hgicommon.models import Model
 
 
@@ -14,7 +14,7 @@ class StubModel(Model):
         super(Model, self).__init__()
 
 
-class StubFilesDataSource(FilesDataSource):
+class StubFilesDataSource(FilesDataSource[int]):
     """
     Stub `FilesDataSource`.
     """
@@ -25,7 +25,7 @@ class StubFilesDataSource(FilesDataSource):
         pass
 
 
-class StubSynchronisedInFileDataSource(SynchronisedFilesDataSource):
+class StubSynchronisedInFileDataSource(SynchronisedFilesDataSource[int]):
     """
     Stub `SynchronisedFilesDataSource`.
     """
@@ -36,7 +36,7 @@ class StubSynchronisedInFileDataSource(SynchronisedFilesDataSource):
         pass
 
 
-class StubRegisteringDataSource(RegisteringDataSource):
+class StubRegisteringDataSource(RegisteringDataSource[int]):
     """
     Stub implementation of `RegisteringDataSource`.
     """
