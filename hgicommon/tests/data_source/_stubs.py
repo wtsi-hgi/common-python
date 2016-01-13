@@ -14,7 +14,7 @@ class StubModel(Model):
         super(Model, self).__init__()
 
 
-class StubFilesDataSource(FilesDataSource[int]):
+class StubFilesDataSource(FilesDataSource):
     """
     Stub `FilesDataSource`.
     """
@@ -25,7 +25,7 @@ class StubFilesDataSource(FilesDataSource[int]):
         pass
 
 
-class StubSynchronisedInFileDataSource(SynchronisedFilesDataSource[int]):
+class StubSynchronisedInFileDataSource(SynchronisedFilesDataSource):
     """
     Stub `SynchronisedFilesDataSource`.
     """
@@ -36,7 +36,7 @@ class StubSynchronisedInFileDataSource(SynchronisedFilesDataSource[int]):
         pass
 
 
-class StubRegisteringDataSource(RegisteringDataSource[int]):
+class StubRegisteringDataSource(RegisteringDataSource):
     """
     Stub implementation of `RegisteringDataSource`.
     """

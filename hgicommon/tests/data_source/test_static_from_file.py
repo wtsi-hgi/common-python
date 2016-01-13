@@ -2,6 +2,7 @@ import glob
 import logging
 import os
 import shutil
+import threading
 import unittest
 from multiprocessing import Lock
 from tempfile import mkdtemp
@@ -195,6 +196,32 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
         change_lock.acquire()
 
         self.assertCountEqual(self.source.get_all(), [x for x in self.data if x not in to_modify] + modified)
+
+    def test_get_all_when_file_moved(self):
+        self.source.start()
+        block_until_synchronised_files_data_source_started(self.source)
+
+        move_semaphore = Semaphore(0)
+        deleted = False
+
+        def on_change(change: FileSystemChange):
+            nonlocal deleted
+            if change == FileSystemChange.DELETE:
+                move_semaphore.release()
+                deleted = True
+            if deleted and change == FileSystemChange.CREATE:
+                move_semaphore.release()
+
+        self.source.add_listener(on_change)
+
+        to_move_file_path = glob.glob("%s/*" % self.temp_directory)[0]
+        move_to = "%s_moved" % to_move_file_path
+        shutil.move(to_move_file_path, move_to)
+
+        move_semaphore.acquire()
+        move_semaphore.acquire()
+
+        self.assertCountEqual(self.source.get_all(), self.data)
 
     def _add_more_data_in_nested_directory(self, number_of_extra_files: int=1) -> Tuple[str, List[int]]:
         """
