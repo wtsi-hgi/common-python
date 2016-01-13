@@ -1,8 +1,8 @@
 from typing import Iterable
 
-from hgicommon.data_source.static_from_file import FilesDataSource, SynchronisedFilesDataSource
 from hgicommon.data_source.common import DataSourceType
 from hgicommon.data_source.dynamic_from_file import RegisteringDataSource
+from hgicommon.data_source.static_from_file import FilesDataSource, SynchronisedFilesDataSource
 from hgicommon.models import Model
 
 

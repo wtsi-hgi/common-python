@@ -7,7 +7,8 @@ from multiprocessing import Lock
 from typing import Iterable, Dict
 from typing import Sequence
 
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
+from watchdog.events import FileSystemEventHandler, FileSystemEvent, EVENT_TYPE_DELETED, EVENT_TYPE_CREATED, \
+    FileSystemMovedEvent
 from watchdog.observers import Observer
 
 from hgicommon.data_source import DataSource
@@ -97,6 +98,10 @@ class FileSystemChange(Enum):
     DELETE = 3
 
 
+# TODO: signature should be:
+# class SynchronisedFilesDataSource(FilesDataSource[DataSourceType], Listenable[FileSystemChange]):
+# However, Python's current implementation of generics does not like this (subclasses need to give to types as generic
+# parameters opposed to one.
 class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange]):
     """
     Synchronises data from data files in a given directory. When the data changes, the data known about at the source is
@@ -121,6 +126,7 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange])
         self._event_handler.on_created = self._on_file_created
         self._event_handler.on_modified = self._on_file_modified
         self._event_handler.on_deleted = self._on_file_deleted
+        self._event_handler.on_moved = self._on_file_moved
         self._event_handler.on_any_event = SynchronisedFilesDataSource._on_any_event
 
     def get_all(self) -> Sequence[DataSourceType]:
@@ -141,12 +147,13 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange])
                 raise RuntimeError("Already running")
             self._running = True
 
-        self._origin_mapped_data = self._load_all_in_directory()
-
         # Cannot re-use Observer after stopped
         self._observer = Observer()
         self._observer.schedule(self._event_handler, self._directory_location, recursive=True)
         self._observer.start()
+
+        # Load all in directory afterwards to ensure no undetected changes between loading all and observing
+        self._origin_mapped_data = self._load_all_in_directory()
 
     def stop(self):
         """
@@ -188,6 +195,22 @@ class SynchronisedFilesDataSource(FilesDataSource, Listenable[FileSystemChange])
             assert event.src_path in self._origin_mapped_data
             del(self._origin_mapped_data[event.src_path])
             self.notify_listeners(FileSystemChange.DELETE)
+
+    def _on_file_moved(self, event: FileSystemMovedEvent):
+        """
+        Called when a file in the monitored directory has been moved.
+
+        Breaks move down into a delete and a create (which it is sometimes detected as!).
+        :param event: the file system event
+        """
+        if not event.is_directory and self.is_data_file(event.src_path):
+            delete_event = FileSystemEvent(event.src_path)
+            delete_event.event_type = EVENT_TYPE_DELETED
+            self._on_file_deleted(delete_event)
+
+            create_event = FileSystemEvent(event.dest_path)
+            create_event.event_type = EVENT_TYPE_CREATED
+            self._on_file_created(create_event)
 
     @staticmethod
     def _on_any_event(event: FileSystemEvent):

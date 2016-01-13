@@ -4,7 +4,7 @@ from abc import ABCMeta
 from collections import defaultdict
 from importlib.util import module_from_spec, spec_from_file_location
 from multiprocessing import Lock
-from typing import Any, Iterable
+from typing import Any, Iterable, Generic
 
 from hgicommon.data_source.basic import DataSourceType
 
@@ -38,6 +38,9 @@ def unregister(registerable: Any):
     listenable.notify_listeners(event)
 
 
+# TODO: signature should be:
+# class RegisteringDataSource(SynchronisedFilesDataSource[DataSourceType]):
+# However, Python's current implementation of generics does not like this (see problem with subclass signature).
 class RegisteringDataSource(SynchronisedFilesDataSource):
     """
     Data source where data are defined pragmatically in Python modules. After their definition, data are registered
