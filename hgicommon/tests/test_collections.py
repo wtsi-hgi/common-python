@@ -1,6 +1,6 @@
 import unittest
 
-from hgicommon.collections import SearchCriteria
+from hgicommon.collections import SearchCriteria, Metadata
 from hgicommon.enums import ComparisonOperator
 from hgicommon.models import SearchCriterion
 
@@ -67,9 +67,37 @@ class TestSearchCriteria(unittest.TestCase):
         search_criteria_1b = SearchCriteria([self._search_criterion1])
 
         def perform_test():
-            search_criteria = search_criteria_1a + search_criteria_1b
+            search_criteria_1a + search_criteria_1b
 
         self.assertRaises(ValueError, perform_test)
+
+
+class TestMetadata(unittest.TestCase):
+    """
+    Tests for `Metadata`.
+    """
+    _TEST_VALUES = {1: 2, 3: 4}
+
+    def test_init_with_initial_values(self):
+        metadata = Metadata(TestMetadata._TEST_VALUES)
+        self.assertEqual(metadata, TestMetadata._TEST_VALUES)
+
+    def test_set(self):
+        metadata = Metadata()
+        metadata.set(1, 2)
+        metadata[3] = 4
+        self.assertEqual(metadata, TestMetadata._TEST_VALUES)
+
+    def test_get(self):
+        metadata = Metadata(TestMetadata._TEST_VALUES)
+        self.assertEqual(metadata.get(1), TestMetadata._TEST_VALUES[1])
+        self.assertEqual(metadata[1], TestMetadata._TEST_VALUES[1])
+
+    def test_rename(self):
+        metadata = Metadata(TestMetadata._TEST_VALUES)
+        metadata.rename(1, 10)
+        self.assertNotIn(1, metadata)
+        self.assertEqual(metadata[10], 2)
 
 
 if __name__ == "__main__":

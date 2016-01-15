@@ -38,9 +38,9 @@ class TestPriority(unittest.TestCase):
             queue.put(priority)
 
         self.assertListEqual(sorted(priorities), [self.high_priority, self.medium_priority, self.low_priority])
-        self.assertEquals(queue.get(), self.high_priority)
-        self.assertEquals(queue.get(), self.medium_priority)
-        self.assertEquals(queue.get(), self.low_priority)
+        self.assertEqual(queue.get(), self.high_priority)
+        self.assertEqual(queue.get(), self.medium_priority)
+        self.assertEqual(queue.get(), self.low_priority)
 
 
 if __name__ == "__main__":
