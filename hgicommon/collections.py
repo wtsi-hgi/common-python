@@ -4,8 +4,6 @@ from typing import Any
 from typing import Dict
 from typing import Sequence
 
-from deprecator.deprecator import deprecate
-
 from hgicommon.models import SearchCriterion
 
 
