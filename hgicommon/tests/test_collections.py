@@ -99,6 +99,15 @@ class TestMetadata(unittest.TestCase):
         self.assertNotIn(1, metadata)
         self.assertEqual(metadata[10], 2)
 
+    def test_rename_non_existent(self):
+        metadata = Metadata(TestMetadata._TEST_VALUES)
+        self.assertRaises(KeyError, metadata.rename, 10, 20)
+
+    def test_rename_to_same_name(self):
+        metadata = Metadata(TestMetadata._TEST_VALUES)
+        metadata.rename(1, 1)
+        self.assertEqual(metadata[1], 2)
+
 
 if __name__ == "__main__":
     unittest.main()
