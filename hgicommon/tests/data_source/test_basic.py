@@ -18,7 +18,7 @@ class TestMultiDataSource(unittest.TestCase):
 
     def test_get_all_when_no_sources(self):
         source = MultiDataSource()
-        self.assertEquals(len(source.get_all()), 0)
+        self.assertEqual(len(source.get_all()), 0)
 
     def test_get_all_when_sources(self):
         source = MultiDataSource(self.sources)

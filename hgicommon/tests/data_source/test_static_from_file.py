@@ -39,7 +39,7 @@ class TestFilesDataSource(unittest.TestCase):
         source = StubFilesDataSource(empty_directory)
 
         retrieved_data = source.get_all()
-        self.assertEquals(len(retrieved_data), 0)
+        self.assertEqual(len(retrieved_data), 0)
 
     def test_get_all(self):
         retrieved_data = self.source.get_all()
@@ -105,7 +105,7 @@ class TestSynchronisedFilesDataSource(unittest.TestCase):
         for file_path in glob.iglob("%s/*" % self.temp_directory):
             os.remove(file_path)
         self.source.start()
-        self.assertEquals(len(self.source.get_all()), 0)
+        self.assertEqual(len(self.source.get_all()), 0)
 
     def test_get_all_when_file_created(self):
         self.source.start()

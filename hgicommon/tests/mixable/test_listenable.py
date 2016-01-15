@@ -25,7 +25,7 @@ class TestListenable(unittest.TestCase):
         listeners = TestListenable._add_n_mock_listeners_to_listenable(5, self._listenable)
         for listener in listeners:
             self._listenable.remove_listener(listener)
-        self.assertEquals(len(self._listenable.get_listeners()), 0)
+        self.assertEqual(len(self._listenable.get_listeners()), 0)
 
     def test_remove_listener_with_non_existing_listener(self):
         TestListenable._add_n_mock_listeners_to_listenable(5, self._listenable)
