@@ -1,4 +1,10 @@
-from typing import Sequence, Sized
+from collections import defaultdict
+from multiprocessing import Lock
+from typing import Any
+from typing import Dict
+from typing import Sequence
+
+from deprecator.deprecator import deprecate
 
 from hgicommon.models import SearchCriterion
 
@@ -36,74 +42,56 @@ class SearchCriteria(list):
             self.append(search_criteria)
 
 
-class Metadata(Sized):
+class Metadata(Dict):
     """
     Generic key-value metadata model.
     """
-    # This is composed from a dictionary, rather than inheriting, in case the implementation needs to change and to
-    # expose only the methods used...
-    def __init__(self, initial: dict=None):
-        self._data = dict()
-        if initial is not None:
-            for key, value in initial.items():
-                self.set(key, value)
-
-    def __iter__(self):
-        return self._data.__iter__()
-
-    def __str__(self) -> str:
-        return str(self._data)
-
-    def __repr__(self) -> str:
-        return '{class_id} {representation}'.format(
-            class_id = self.__class__,
-            representation = str(self)
-        )
-
-    def __eq__(self, other) -> bool:
-        if not isinstance(other, self.__class__):
-            return False
-        return self._data == other._data
-
-    def has_attribute(self, attribute: str) -> bool:
+    def __init__(self, seq=()):
         """
-        Check an attribute exists in the metadata.
-        :param attribute: dictionary key
-        :return: exists in the dictionary
+        Constructor.
+        :param seq: initial values
         """
-        return attribute in self._data
+        super().__init__(seq)
+        self._attribute_lock = defaultdict(Lock)    # type: Dict[Any, Lock]
 
-    def items(self):
-        return self._data.items()
-
-    def attributes(self):
-        return self._data.keys()
-
-    def values(self):
-        return self._data.values()
-
-    def get(self, attribute: str, default=None):
+    def get(self, attribute: Any, default=None):
         """
-        Get item in metadata by its attribute, returning a fallback value when the attribute is not found.
+        Get item in this collection by its attribute, returning a fallback value when the attribute is not found.
         :param attribute: dictionary key
         :param default: default value, if not found
         :return: the value
         """
-        return self._data.get(attribute, default)
+        return super().get(attribute, default)
 
-    def __getitem__(self, attribute: str):
+    def __getitem__(self, attribute: Any):
         return self.get(attribute)
 
-    def set(self, attribute: str, value):
+    def set(self, attribute: Any, value: Any):
         """
-        Set item in metadata by its attribute.
+        Set item in this collection by its attribute.
         :param attribute: dictionary key
         :param value: value
         """
-        self._data[attribute] = value
+        super().__setitem__(attribute, value)
 
-    def __setitem__(self, attribute: str, value):
+    def __setitem__(self, attribute: Any, value: Any):
         self.set(attribute, value)
 
-    def __len__(self):
-        return len(self._data)
+    def rename(self, attribute: Any, new_attribute: Any):
+        """
+        Renames an item in this collection as a transaction.
+
+        Will override values if new attribute name already exists.
+        :param attribute: the current name of the item
+        :param new_attribute: the new name that the item should have
+        """
+        required_locks = [self._attribute_lock[attribute], self._attribute_lock[new_attribute]]
+        ordered_required_locks = sorted(required_locks, key=lambda x: id(x))
+        for lock in ordered_required_locks:
+            lock.acquire()
+
+        self[new_attribute] = self[attribute]
+        del self[attribute]
+
+        for lock in ordered_required_locks:
+            lock.release()
