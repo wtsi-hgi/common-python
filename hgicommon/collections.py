@@ -85,13 +85,19 @@ class Metadata(Dict):
         :param attribute: the current name of the item
         :param new_attribute: the new name that the item should have
         """
+        if new_attribute == attribute:
+            return
+
         required_locks = [self._attribute_lock[attribute], self._attribute_lock[new_attribute]]
         ordered_required_locks = sorted(required_locks, key=lambda x: id(x))
         for lock in ordered_required_locks:
             lock.acquire()
 
-        self[new_attribute] = self[attribute]
-        del self[attribute]
-
-        for lock in ordered_required_locks:
-            lock.release()
+        try:
+            if attribute not in self:
+                raise KeyError("Attribute to rename \"%s\" does not exist" % attribute)
+            self[new_attribute] = self[attribute]
+            del self[attribute]
+        finally:
+            for lock in ordered_required_locks:
+                lock.release()
