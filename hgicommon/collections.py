@@ -102,13 +102,19 @@ class Metadata(Sized, Iterable):
     def values(self) -> Iterable(Any):
         return self._data.values()
 
+    def __str__(self) -> str:
+        return str(self._data)
+
+    def __repr__(self) -> str:
+        return "{%s} {%s}" % (self.__class__, str(self))
+
     def __eq__(self, other: Any) -> bool:
         if type(other) != type(self):
             return False
         return other._data == self._data
 
     def __iter__(self) -> Iterable(Any):
-        return self.keys()
+        return self._data.__iter__()
 
     def __len__(self) -> int:
         return len(self._data)
