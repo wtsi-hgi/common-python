@@ -134,6 +134,10 @@ class TestMetadata(unittest.TestCase):
     def test_eq_when_not_eqal(self):
         self.assertNotEqual(Metadata(TestMetadata._TEST_VALUES), Metadata())
 
+    def test_can_get_representation(self):
+        string_representation = repr(self.metadata)
+        self.assertTrue(isinstance(string_representation, str))
+
 
 if __name__ == "__main__":
     unittest.main()
