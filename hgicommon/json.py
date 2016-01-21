@@ -40,15 +40,19 @@ class _RegisteredTypeJSONEncoder(JSONEncoder, metaclass=ABCMeta):
         return encoder.default(to_encode)
 
     @abstractmethod
-    def _get_json_encoders_for_type(self):
+    def _get_json_encoders_for_type(self, type_to_encode: type) -> Optional[Iterable[JSONEncoder]]:
+        """
+        Gets the correct JSON encoder for the given type.
+        :param type_to_encode: the type to encode
+        :return: the encoder for the given type
+        """
         pass
 
 
 class JSONEncoderClassBuilder:
     """
-    TODO
-
-    Builds the encoder class, not an instantiation!
+    Builder for `JSONEncoder` class that is able to use a number of given `JSONEncoders` to serialise models that may
+    contain many models of different types.
     """
     # Encoders for objects that are handled by the in-build JSON library
     _DEFAULT_JSON_ENCODERS = {
@@ -93,14 +97,14 @@ class JSONEncoderClassBuilder:
         """
         self._json_encoders = copy.copy(JSONEncoderClassBuilder._DEFAULT_JSON_ENCODERS)
 
-    def build(self):
+    def build(self) -> _RegisteredTypeJSONEncoder:
         """
-        TODO
-        :return:
+        Builds JSON encoder that uses the encoders registered at the point in time when this method is called.
+        :return: the JSON encoder
         """
         class_name = "%s_%s" % (_RegisteredTypeJSONEncoder.__class__.__name__, id(self))
         # Use encoders set at the point in time at which the encoder was built
-        builder_snapshot = copy.deepcopy(self)  # type: JSONEncoderClassBuilder
+        builder_snapshot = copy.deepcopy(self)
         return type(
                 class_name,
                 (_RegisteredTypeJSONEncoder, ),
@@ -108,4 +112,3 @@ class JSONEncoderClassBuilder:
                     "_get_json_encoders_for_type": builder_snapshot.get_json_encoders_for_type
                 }
         )
-
