@@ -11,9 +11,9 @@ class TestModelJSONEncoder(unittest.TestCase):
     """
     def setUp(self):
         self._model = StubModel()
-        self._model.property_1 = 1
-        self._model.property_2 = "a"
-        self._model.property_3 = []
+        self._model.property_1 = {1: 2}
+        self._model.property_2 = ["a"]
+        self._model_serialised = {"property_1": {1: 2}, "property_2": ["a"]}
 
     def test_with_empty_model(self):
         serialised = json.dumps(StubModel(), cls=ModelJSONEncoder)
@@ -21,13 +21,16 @@ class TestModelJSONEncoder(unittest.TestCase):
 
     def test_with_model(self):
         serialised = json.dumps(self._model, cls=ModelJSONEncoder)
-        self.assertEqual(serialised, json.dumps({"property_1": 1, "property_2": "a", "property_3": []}))
+        self.assertEqual(serialised, json.dumps(self._model_serialised))
 
     def test_with_nested_model(self):
-        nested = [{"test": self._model}]
-        serialised = json.dumps(nested, cls=ModelJSONEncoder)
-        self.assertEqual(serialised, json.dumps([{"test": {"property_1": 1, "property_2": "a", "property_3": []}}]))
+        inner_model = StubModel()
+        inner_model.property_1 = 1
+        self._model.property_3 = inner_model
+        self._model_serialised["property_3"] = {"property_1": 1}
 
+        serialised = json.dumps(self._model, cls=ModelJSONEncoder)
+        self.assertEqual(serialised, json.dumps(self._model_serialised))
 
 
 if __name__ == "__main__":
