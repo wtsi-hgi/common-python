@@ -1,7 +1,7 @@
 import copy
 from abc import ABCMeta, abstractmethod
 from json import JSONEncoder
-from typing import Tuple, Dict, Union, List, Optional, Iterable, Any
+from typing import Tuple, Dict, Union, List, Optional, Iterable, Any, TypeVar
 
 # Return type of JSONEncoder.default
 DefaultSupportedReturnType = Union[
@@ -11,7 +11,6 @@ DefaultSupportedReturnType = Union[
 
 class _RegisteredTypeJSONEncoder(JSONEncoder, metaclass=ABCMeta):
     """
-    TODO
     JSON encoder that will encode objects using the registered encoders. Works with in-built JSON library:
     ```
     import json
@@ -24,6 +23,7 @@ class _RegisteredTypeJSONEncoder(JSONEncoder, metaclass=ABCMeta):
         super().__init__(*args, **kwargs)
         self._args = args
         self._kwargs = kwargs
+        self._encoder_cache = dict()    # type: Dict[type, JSONEncoder]
 
     def default(self, to_encode: Any) -> DefaultSupportedReturnType:
         type_to_encode = type(to_encode)
@@ -34,7 +34,11 @@ class _RegisteredTypeJSONEncoder(JSONEncoder, metaclass=ABCMeta):
             encoder_type = JSONEncoder
         assert isinstance(encoder_type, type)
 
-        encoder = encoder_type(*self._args, **self._kwargs)
+        if encoder_type not in self._encoder_cache:
+            encoder = encoder_type(*self._args, **self._kwargs)
+            self._encoder_cache[encoder_type] = encoder
+
+        encoder = self._encoder_cache[encoder_type]
         assert isinstance(encoder, JSONEncoder)
 
         return encoder.default(to_encode)
@@ -49,10 +53,13 @@ class _RegisteredTypeJSONEncoder(JSONEncoder, metaclass=ABCMeta):
         pass
 
 
+RegisteredTypeJSONEncoderType = TypeVar("RegisteredTypeJSONEncoder", bound=_RegisteredTypeJSONEncoder)
+
+
 class JSONEncoderClassBuilder:
     """
-    Builder for `JSONEncoder` class that is able to use a number of given `JSONEncoders` to serialise models that may
-    contain many models of different types.
+    Builder for `JSONEncoder` class that is able to use a number of given `JSONEncoders` to automatically serialise
+    models that may contain many models of different types.
     """
     # Encoders for objects that are handled by the in-build JSON library
     _DEFAULT_JSON_ENCODERS = {
@@ -97,7 +104,7 @@ class JSONEncoderClassBuilder:
         """
         self._json_encoders = copy.copy(JSONEncoderClassBuilder._DEFAULT_JSON_ENCODERS)
 
-    def build(self) -> _RegisteredTypeJSONEncoder:
+    def build(self) -> RegisteredTypeJSONEncoderType:
         """
         Builds JSON encoder that uses the encoders registered at the point in time when this method is called.
         :return: the JSON encoder

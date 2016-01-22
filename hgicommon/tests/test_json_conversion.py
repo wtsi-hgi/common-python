@@ -1,13 +1,13 @@
 import json
 import unittest
 
-from hgicommon.json_conversion import ModelJSONEncoder
+from hgicommon.json_conversion import ObjectJSONEncoder
 from hgicommon.tests._stubs import StubModel
 
 
 class TestModelJSONEncoder(unittest.TestCase):
     """
-    Tests for `ModelJSONEncoder`.
+    Tests for `ObjectJSONEncoder`.
     """
     def setUp(self):
         self._model = StubModel()
@@ -16,11 +16,11 @@ class TestModelJSONEncoder(unittest.TestCase):
         self._model_serialised = {"property_1": {1: 2}, "property_2": ["a"]}
 
     def test_with_empty_model(self):
-        serialised = json.dumps(StubModel(), cls=ModelJSONEncoder)
+        serialised = json.dumps(StubModel(), cls=ObjectJSONEncoder)
         self.assertEqual(serialised, json.dumps({}))
 
     def test_with_model(self):
-        serialised = json.dumps(self._model, cls=ModelJSONEncoder)
+        serialised = json.dumps(self._model, cls=ObjectJSONEncoder)
         self.assertEqual(serialised, json.dumps(self._model_serialised))
 
     def test_with_nested_model(self):
@@ -29,7 +29,7 @@ class TestModelJSONEncoder(unittest.TestCase):
         self._model.property_3 = inner_model
         self._model_serialised["property_3"] = {"property_1": 1}
 
-        serialised = json.dumps(self._model, cls=ModelJSONEncoder)
+        serialised = json.dumps(self._model, cls=ObjectJSONEncoder)
         self.assertEqual(serialised, json.dumps(self._model_serialised))
 
 
