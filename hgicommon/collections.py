@@ -1,8 +1,6 @@
 from collections import defaultdict
 from multiprocessing import Lock
-from typing import Any, Iterable, Sized
-from typing import Dict
-from typing import Sequence
+from typing import Any, Iterable, Sized, Dict, Sequence
 
 from hgicommon.models import SearchCriterion
 
@@ -14,15 +12,15 @@ class SearchCriteria(list):
     _DUPLICATE_ERROR_MESSAGE = "Search criterion based on the attribute `%s` already added"
 
     def __init__(self, search_criterion_list: Sequence[SearchCriterion]=()):
-        super(SearchCriteria, self).__init__()
+        super().__init__()
         for search_criterion in search_criterion_list:
             self.append(search_criterion)
+
 
     def append(self, search_criterion: SearchCriterion):
         for existing_search_criterion in self:
             if existing_search_criterion.attribute == search_criterion.attribute:
                 raise ValueError(SearchCriteria._DUPLICATE_ERROR_MESSAGE)
-
         super(SearchCriteria, self).append(search_criterion)
 
     def extend(self, iterable):
@@ -38,6 +36,9 @@ class SearchCriteria(list):
     def __add__(self, other):
         for search_criteria in other:
             self.append(search_criteria)
+
+    def __repr__(self) -> str:
+        return "<%s object at %s: %s>" % (type(self), id(self), str(self))
 
 
 class Metadata(Sized, Iterable):
@@ -106,7 +107,7 @@ class Metadata(Sized, Iterable):
         return str(self._data)
 
     def __repr__(self) -> str:
-        return "{%s} {%s}" % (self.__class__, str(self))
+        return "<%s object at %s: %s>" % (type(self), id(self), str(self))
 
     def __eq__(self, other: Any) -> bool:
         if type(other) != type(self):

@@ -1,9 +1,7 @@
 import copy
-from typing import List
-from typing import Sequence, Iterable
+from typing import List, Sequence, Iterable
 
-from hgicommon.data_source.common import DataSource
-from hgicommon.data_source.common import DataSourceType
+from hgicommon.data_source.common import DataSource, DataSourceType
 
 
 class MultiDataSource(DataSource[DataSourceType]):

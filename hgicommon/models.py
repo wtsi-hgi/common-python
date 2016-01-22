@@ -1,8 +1,6 @@
 from abc import ABCMeta
-from enum import Enum
-from enum import unique
-from typing import Generic
-from typing import TypeVar
+from enum import Enum, unique
+from typing import Generic, TypeVar
 
 from hgicommon.enums import ComparisonOperator
 
@@ -26,7 +24,7 @@ class Model(metaclass=ABCMeta):
         return "{ %s }" % ', '.join(string_builder)
 
     def __repr__(self) -> str:
-        return "%s %s" % (self.__class__, str(self))
+        return "<%s object at %s: %s>" % (type(self), id(self), str(self))
 
     def __hash__(self):
         return hash(str(self))
@@ -43,7 +41,7 @@ class SearchCriterion(Model):
 
 
 # The type of the object that is registered
-_RegistrationTarget = TypeVar('T')
+_RegistrationTarget = TypeVar("RegistrationTarget")
 
 
 class RegistrationEvent(Generic[_RegistrationTarget], Model):

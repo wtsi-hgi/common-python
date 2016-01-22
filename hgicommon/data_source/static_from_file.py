@@ -1,11 +1,9 @@
 import glob
 import logging
-from abc import ABCMeta
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 from enum import unique, Enum
 from multiprocessing import Lock
-from typing import Iterable, Dict
-from typing import Sequence
+from typing import Iterable, Dict, Sequence
 
 from watchdog.events import FileSystemEventHandler, FileSystemEvent, EVENT_TYPE_DELETED, EVENT_TYPE_CREATED, \
     FileSystemMovedEvent
