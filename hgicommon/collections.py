@@ -37,6 +37,9 @@ class SearchCriteria(list):
         for search_criteria in other:
             self.append(search_criteria)
 
+    def __repr__(self) -> str:
+        return "<%s object at %s: %s>" % (type(self), id(self), str(self))
+
 
 class Metadata(Sized, Iterable):
     """
@@ -104,7 +107,7 @@ class Metadata(Sized, Iterable):
         return str(self._data)
 
     def __repr__(self) -> str:
-        return "{%s} {%s}" % (self.__class__, str(self))
+        return "<%s object at %s: %s>" % (type(self), id(self), str(self))
 
     def __eq__(self, other: Any) -> bool:
         if type(other) != type(self):

@@ -1,7 +1,7 @@
 from abc import ABCMeta,abstractmethod
 from typing import Generic, Sequence, TypeVar
 
-DataSourceType = TypeVar("T")
+DataSourceType = TypeVar("DataSourceType")
 
 
 class DataSource(Generic[DataSourceType]):

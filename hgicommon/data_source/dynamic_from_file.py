@@ -4,12 +4,10 @@ from abc import ABCMeta
 from collections import defaultdict
 from importlib.util import module_from_spec, spec_from_file_location
 from multiprocessing import Lock
-from typing import Any, Iterable, Generic
+from typing import Any, Iterable
 
 from hgicommon.data_source.basic import DataSourceType
-
 from hgicommon.data_source.static_from_file import SynchronisedFilesDataSource
-
 from hgicommon.mixable import Listenable
 from hgicommon.models import RegistrationEvent
 
