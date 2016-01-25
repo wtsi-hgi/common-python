@@ -2,7 +2,7 @@ import json
 import unittest
 from json import JSONEncoder
 
-from hgicommon.json import JSONEncoderClassBuilder
+from hgicommon.serialisation.json.automatic import AutomaticJSONEncoderClassBuilder
 from hgicommon.tests._stubs import StubModel, StubRegisteredTypeJSONEncoder
 
 
@@ -18,12 +18,12 @@ class TestRegisteredTypeJSONEncoder(unittest.TestCase):
         self.assertEqual(json.dumps(dict, cls=StubRegisteredTypeJSONEncoder), json.dumps(dict))
 
 
-class TestJSONEncoderClassBuilder(unittest.TestCase):
+class TestAutomaticJSONEncoderClassBuilder(unittest.TestCase):
     """
-    Tests for `JSONEncoderClassBuilder`.
+    Tests for `AutomaticJSONEncoderClassBuilder`.
     """
     def setUp(self):
-        self.encoder_builder = JSONEncoderClassBuilder()
+        self.encoder_builder = AutomaticJSONEncoderClassBuilder()
 
     def test_get_json_encoders_for_type_if_not_known(self):
         self.assertIsNone(self.encoder_builder.get_json_encoders_for_type(JSONEncoder))

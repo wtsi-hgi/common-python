@@ -1,8 +1,7 @@
 from json import JSONEncoder
 
-from hgicommon.json import _RegisteredTypeJSONEncoder
-
 from hgicommon.models import Model
+from hgicommon.serialisation.json.automatic import _RegisteredTypeJSONEncoder
 
 
 class StubModel(Model):
