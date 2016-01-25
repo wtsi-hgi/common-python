@@ -56,7 +56,7 @@ class _RegisteredTypeJSONEncoder(JSONEncoder, metaclass=ABCMeta):
 RegisteredTypeJSONEncoderType = TypeVar("RegisteredTypeJSONEncoder", bound=_RegisteredTypeJSONEncoder)
 
 
-class JSONEncoderClassBuilder:
+class AutomaticJSONEncoderClassBuilder:
     """
     Builder for `JSONEncoder` class that is able to use a number of given `JSONEncoders` to automatically serialise
     models that may contain many models of different types.
@@ -95,14 +95,16 @@ class JSONEncoderClassBuilder:
         Register the given JSON encoder for use with the given object type.
         :param encoder_type: the type of object to encode
         :param encoder: the JSON encoder
+        :return: this builder
         """
         self._json_encoders[encoder_type] = encoder
+        return self
 
     def reset_registered_json_encoders(self):
         """
         Resets registered JSON encoders so that only ones supported by the in-built library are supported.
         """
-        self._json_encoders = copy.copy(JSONEncoderClassBuilder._DEFAULT_JSON_ENCODERS)
+        self._json_encoders = copy.copy(AutomaticJSONEncoderClassBuilder._DEFAULT_JSON_ENCODERS)
 
     def build(self) -> RegisteredTypeJSONEncoderType:
         """
