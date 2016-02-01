@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="hgi-common-python",
+    name="hgi-python-common",
 
     version="0.1.0",
 
@@ -10,7 +10,7 @@ setup(
 
     packages=find_packages(exclude=["tests"]),
 
-    url="https://github.com/wtsi-hgi/common-python",
+    url="https://github.com/wtsi-hgi/python-common",
 
     license="LICENSE",
 
