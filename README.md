@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/wtsi-hgi/common-python.svg)](https://travis-ci.org/wtsi-hgi/common-python)
-[![codecov.io](https://codecov.io/github/wtsi-hgi/common-python/coverage.svg?branch=develop)](https://codecov.io/github/wtsi-hgi/common-python?branch=develop)
+[![Build Status](https://travis-ci.org/wtsi-hgi/python-common.svg)](https://travis-ci.org/wtsi-hgi/python-common)
+[![codecov.io](https://codecov.io/github/wtsi-hgi/python-common/coverage.svg?branch=develop)](https://codecov.io/github/wtsi-hgi/python-common?branch=develop)
 
 # Common Python used in HGI projects
 

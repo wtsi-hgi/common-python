@@ -1,3 +1,4 @@
+import copy
 from collections import defaultdict
 from multiprocessing import Lock
 from typing import Any, Iterable, Sized, Dict, Sequence, Container
@@ -41,7 +42,7 @@ class SearchCriteria(list):
         return "<%s object at %s: %s>" % (type(self), id(self), str(self))
 
 
-class Metadata(Sized, Container):
+class Metadata(Sized, Container, Iterable):
     """
     Generic key-value metadata model.
     """
@@ -114,6 +115,9 @@ class Metadata(Sized, Container):
             return False
         return other._data == self._data
 
+    def __iter__(self) -> Iterable(Any):
+        return self._data.__iter__()
+
     def __len__(self) -> int:
         return len(self._data)
 
@@ -130,3 +134,12 @@ class Metadata(Sized, Container):
 
     def __contains__(self, key: Any) -> bool:
         return key in self._data
+
+    def __copy__(self):
+        return self.__class__(self._data)
+
+    def __deepcopy__(self, memo):
+        data_deepcopy = copy.deepcopy(self._data)
+        deepcopy = self.__class__(data_deepcopy)
+        memo[id(self)] = deepcopy
+        return deepcopy

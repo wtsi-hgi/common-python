@@ -1,3 +1,4 @@
+import copy
 import unittest
 
 from hgicommon.collections import SearchCriteria, Metadata
@@ -142,6 +143,11 @@ class TestMetadata(unittest.TestCase):
         self.assertIn(1, self.metadata)
         self.assertNotIn("a", self.metadata)
 
+    def test_copy(self):
+        self.assertEqual(copy.copy(self.metadata), self.metadata)
+
+    def test_deepcopy(self):
+        self.assertEqual(copy.deepcopy(self.metadata), self.metadata)
 
 if __name__ == "__main__":
     unittest.main()
