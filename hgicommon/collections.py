@@ -1,6 +1,6 @@
 from collections import defaultdict
 from multiprocessing import Lock
-from typing import Any, Iterable, Sized, Dict, Sequence
+from typing import Any, Iterable, Sized, Dict, Sequence, Container
 
 from hgicommon.models import SearchCriterion
 
@@ -41,7 +41,7 @@ class SearchCriteria(list):
         return "<%s object at %s: %s>" % (type(self), id(self), str(self))
 
 
-class Metadata(Sized, Iterable):
+class Metadata(Sized, Container):
     """
     Generic key-value metadata model.
     """
@@ -113,9 +113,6 @@ class Metadata(Sized, Iterable):
         if type(other) != type(self):
             return False
         return other._data == self._data
-
-    def __iter__(self) -> Iterable(Any):
-        return self._data.__iter__()
 
     def __len__(self) -> int:
         return len(self._data)

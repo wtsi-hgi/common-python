@@ -138,6 +138,10 @@ class TestMetadata(unittest.TestCase):
         string_representation = repr(self.metadata)
         self.assertTrue(isinstance(string_representation, str))
 
+    def test_contains(self):
+        self.assertIn(1, self.metadata)
+        self.assertNotIn("a", self.metadata)
+
 
 if __name__ == "__main__":
     unittest.main()
