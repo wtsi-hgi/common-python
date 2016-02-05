@@ -59,7 +59,7 @@ class SearchCriteria(Sequence):
         Remove search criteria that uses the given attribute from this collection.
         :param attribute: the search criteria attribute to search on
         """
-        if self.find_by_attribute(attribute) is not None:
+        if self.find_by_attribute(attribute) is None:
             raise ValueError("Search criteria with the given attribute was not found")
         deleted = False
         index = 0
@@ -95,7 +95,7 @@ class SearchCriteria(Sequence):
         current_value = self._data[index]
         self._data[index] = SearchCriteria._SENTINEL
 
-        if self.has_search_criteria_for_attribute(search_criterion.attribute):
+        if self.find_by_attribute(search_criterion.attribute):
             self._data[index] = current_value
             raise ValueError(SearchCriteria._DUPLICATE_ERROR_MESSAGE)
 

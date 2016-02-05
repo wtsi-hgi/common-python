@@ -40,11 +40,12 @@ class TestSearchCriteria(unittest.TestCase):
         search_criteria_2 = SearchCriteria([self._search_criterion1])
         self.assertRaises(ValueError, search_criteria_1.extend, search_criteria_2)
 
-    def test_has_search_criteria_for_attribute_when_does_not(self):
-        self.assertFalse(self._search_criteria.has_search_criteria_for_attribute("other"))
+    def test_find_by_attribute_when_does_not(self):
+        self.assertIsNone(self._search_criteria.find_by_attribute("other"))
 
-    def test_has_search_criteria_for_attribute_when_does(self):
-        self.assertTrue(self._search_criteria.has_search_criteria_for_attribute(self._search_criterion1.attribute))
+    def test_find_by_attribute_when_does(self):
+        found = self._search_criteria.find_by_attribute(self._search_criterion1.attribute)
+        self.assertEqual(found, self._search_criterion1)
 
     def test_setitem(self):
         search_criteria = SearchCriteria([self._search_criterion1])
@@ -76,11 +77,11 @@ class TestSearchCriteria(unittest.TestCase):
         del self._search_criteria[0]
         self.assertEqual(self._search_criteria, SearchCriteria([self._search_criterion2]))
 
-    def test_delete_serach_criteria_for_attribute_when_not_exists(self):
-        self.assertRaises(ValueError, self._search_criteria.delete_serach_criteria_for_attribute, "other")
+    def test_remove_by_attribute_when_not_exists(self):
+        self.assertRaises(ValueError, self._search_criteria.remove_by_attribute, "other")
 
-    def test_delete_serach_criteria_for_attribute_when_exists(self):
-        self._search_criteria.delete_serach_criteria_for_attribute(self._search_criterion1.attribute)
+    def test_remove_by_attribute_when_exists(self):
+        self._search_criteria.remove_by_attribute(self._search_criterion1.attribute)
         self.assertEqual(self._search_criteria, SearchCriteria([self._search_criterion2]))
 
 
