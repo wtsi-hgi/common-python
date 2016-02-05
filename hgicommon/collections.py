@@ -17,8 +17,7 @@ class SearchCriteria(Sequence):
 
     def __init__(self, search_criterions: Iterable[SearchCriterion]=()):
         self._data = []
-        for search_criterion in search_criterions:
-            self.append(search_criterion)
+        self.extend(search_criterions)
 
     def append(self, search_criterion: SearchCriterion):
         if self.has_search_criteria_for_attribute(search_criterion.attribute):
@@ -26,8 +25,8 @@ class SearchCriteria(Sequence):
         self._data.append(search_criterion)
 
     def extend(self, search_criteria):
-        for search_criteria in search_criteria:
-            self.append(search_criteria)
+        for search_criterion in search_criteria:
+            self.append(search_criterion)
 
     def pop(self, index: int) -> SearchCriterion:
         return self._data.pop(index)
