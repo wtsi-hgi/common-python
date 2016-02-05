@@ -38,6 +38,20 @@ class SearchCriteria(Sequence):
                 return True
         return False
 
+    def delete_serach_criteria_for_attribute(self, attribute: str):
+        if not self.has_search_criteria_for_attribute(attribute):
+            raise ValueError("Search criteria with the given attribute was not found")
+        deleted = False
+        index = 0
+        while not deleted:
+            if self[index].attribute == attribute:
+                del self[index]
+                deleted = True
+            index += 1
+
+    def __delitem__(self, index: int):
+        del self._data[index]
+
     def __eq__(self, other: Any) -> bool:
         if type(other) != type(self):
             return False

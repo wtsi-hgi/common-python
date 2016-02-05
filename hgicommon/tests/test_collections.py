@@ -72,6 +72,17 @@ class TestSearchCriteria(unittest.TestCase):
         representation = repr(self._search_criteria)
         self.assertTrue(isinstance(representation, str))
 
+    def test_del(self):
+        del self._search_criteria[0]
+        self.assertEqual(self._search_criteria, SearchCriteria([self._search_criterion2]))
+
+    def test_delete_serach_criteria_for_attribute_when_not_exists(self):
+        self.assertRaises(ValueError, self._search_criteria.delete_serach_criteria_for_attribute, "other")
+
+    def test_delete_serach_criteria_for_attribute_when_exists(self):
+        self._search_criteria.delete_serach_criteria_for_attribute(self._search_criterion1.attribute)
+        self.assertEqual(self._search_criteria, SearchCriteria([self._search_criterion2]))
+
 
 class TestMetadata(unittest.TestCase):
     """
