@@ -1,10 +1,9 @@
 import copy
 from collections import defaultdict
 from multiprocessing import Lock
-from typing import Any, Iterable, Sized, Dict, Sequence, Container, Mapping
+from typing import Any, Iterable, Sequence, Mapping, Optional
 
 from hgicommon.enums import ComparisonOperator
-
 from hgicommon.models import SearchCriterion
 
 
@@ -21,25 +20,46 @@ class SearchCriteria(Sequence):
             self.append(search_criterion)
 
     def append(self, search_criterion: SearchCriterion):
-        if self.has_search_criteria_for_attribute(search_criterion.attribute):
+        """
+        Appends a search criterion to this collection.
+        :param search_criterion: the search criterion to add
+        """
+        if self.find_by_attribute(search_criterion.attribute) is not None:
             raise ValueError(SearchCriteria._DUPLICATE_ERROR_MESSAGE)
         self._data.append(search_criterion)
 
     def extend(self, search_criteria):
+        """
+        Extend this collection by appending search criterion from another search criteria.
+        :param search_criteria: the search criteria to merge
+        """
         for search_criteria in search_criteria:
             self.append(search_criteria)
 
     def pop(self, index: int) -> SearchCriterion:
+        """
+        Removes the search criterion from this collection at the given index.
+        :param index: index of the search criteria to remove
+        """
         return self._data.pop(index)
 
-    def has_search_criteria_for_attribute(self, attribute: str) -> bool:
+    def find_by_attribute(self, attribute: str) -> Optional[SearchCriterion]:
+        """
+        Find search criteria in this collection based on the attribute it searches on.
+        :param attribute: the search criterion attribute to search on
+        :return: the matched search criterion
+        """
         for existing_search_criterion in self:
             if existing_search_criterion.attribute == attribute:
-                return True
-        return False
+                return existing_search_criterion
+        return None
 
-    def delete_serach_criteria_for_attribute(self, attribute: str):
-        if not self.has_search_criteria_for_attribute(attribute):
+    def remove_by_attribute(self, attribute: str):
+        """
+        Remove search criteria that uses the given attribute from this collection.
+        :param attribute: the search criteria attribute to search on
+        """
+        if self.find_by_attribute(attribute) is not None:
             raise ValueError("Search criteria with the given attribute was not found")
         deleted = False
         index = 0
