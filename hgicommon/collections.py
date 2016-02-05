@@ -1,48 +1,83 @@
 import copy
 from collections import defaultdict
 from multiprocessing import Lock
-from typing import Any, Iterable, Sized, Dict, Sequence, Container
+from typing import Any, Iterable, Sized, Dict, Sequence, Container, Mapping
+
+from hgicommon.enums import ComparisonOperator
 
 from hgicommon.models import SearchCriterion
 
 
-class SearchCriteria(list):
+class SearchCriteria(Sequence):
     """
     A collection of `SearchCriterion`.
     """
     _DUPLICATE_ERROR_MESSAGE = "Search criterion based on the attribute `%s` already added"
+    _SENTINEL = SearchCriterion("", "", ComparisonOperator.EQUALS)
 
     def __init__(self, search_criterions: Iterable[SearchCriterion]=()):
-        super().__init__()
+        self._data = []
         for search_criterion in search_criterions:
             self.append(search_criterion)
 
-
     def append(self, search_criterion: SearchCriterion):
-        for existing_search_criterion in self:
-            if existing_search_criterion.attribute == search_criterion.attribute:
-                raise ValueError(SearchCriteria._DUPLICATE_ERROR_MESSAGE)
-        super(SearchCriteria, self).append(search_criterion)
-
-    def extend(self, iterable):
-        for search_criteria in iterable:
-            self.append(search_criteria)
-
-    def __setitem__(self, key, value):
-        count = self.count(value)
-        if count > 1 or (count == 1 and self.index(value) != key):
+        if self.has_search_criteria_for_attribute(search_criterion.attribute):
             raise ValueError(SearchCriteria._DUPLICATE_ERROR_MESSAGE)
-        super(SearchCriteria, self).__setitem__(key, value)
+        self._data.append(search_criterion)
 
-    def __add__(self, other):
-        for search_criteria in other:
+    def extend(self, search_criteria):
+        for search_criteria in search_criteria:
             self.append(search_criteria)
+
+    def pop(self, index: int) -> SearchCriterion:
+        return self._data.pop(index)
+
+    def has_search_criteria_for_attribute(self, attribute: str) -> bool:
+        for existing_search_criterion in self:
+            if existing_search_criterion.attribute == attribute:
+                return True
+        return False
+
+    def __eq__(self, other: Any) -> bool:
+        if type(other) != type(self):
+            return False
+        return other._data == self._data
+
+    def __iter__(self) -> Iterable[SearchCriterion]:
+        return self._data.__iter__()
+
+    def __len__(self) -> int:
+        return len(self._data)
+
+    def __getitem__(self, index: int) -> Any:
+        return self._data[index]
+
+    def __setitem__(self, index: int, search_criterion: SearchCriterion):
+        if len(self._data) <= index:
+            raise IndexError("Index out of range")
+
+        # Temp replace current so checking for search criteria with same attribute ignores the value at the replace
+        # index
+        current_value = self._data[index]
+        self._data[index] = SearchCriteria._SENTINEL
+
+        if self.has_search_criteria_for_attribute(search_criterion.attribute):
+            self._data[index] = current_value
+            raise ValueError(SearchCriteria._DUPLICATE_ERROR_MESSAGE)
+
+        self._data[index] = search_criterion
+
+    def __contains__(self, value: SearchCriterion) -> bool:
+        return value in self._data
+
+    def __str__(self):
+        return str(self._data)
 
     def __repr__(self) -> str:
         return "<%s object at %s: %s>" % (type(self), id(self), str(self))
 
 
-class Metadata(Sized, Container, Iterable):
+class Metadata(Mapping):
     """
     Generic key-value metadata model.
     """
@@ -114,6 +149,9 @@ class Metadata(Sized, Container, Iterable):
         if type(other) != type(self):
             return False
         return other._data == self._data
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
 
     def __iter__(self) -> Iterable(Any):
         return self._data.__iter__()
