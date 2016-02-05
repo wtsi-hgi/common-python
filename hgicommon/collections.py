@@ -12,9 +12,9 @@ class SearchCriteria(list):
     """
     _DUPLICATE_ERROR_MESSAGE = "Search criterion based on the attribute `%s` already added"
 
-    def __init__(self, search_criterion_list: Sequence[SearchCriterion]=()):
+    def __init__(self, search_criterions: Iterable[SearchCriterion]=()):
         super().__init__()
-        for search_criterion in search_criterion_list:
+        for search_criterion in search_criterions:
             self.append(search_criterion)
 
 
@@ -58,7 +58,7 @@ class Metadata(Sized, Container, Iterable):
         """
         Renames an item in this collection as a transaction.
 
-        Will override values if new key name already exists.
+        Will override if new key name already exists.
         :param key: the current name of the item
         :param new_key: the new name that the item should have
         """

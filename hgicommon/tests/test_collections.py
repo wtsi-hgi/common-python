@@ -13,6 +13,7 @@ class TestSearchCriteria(unittest.TestCase):
     def setUp(self):
         self._search_criterion1 = SearchCriterion("attribute1", "value1", ComparisonOperator.EQUALS)
         self._search_criterion2 = SearchCriterion("attribute2", "value2", ComparisonOperator.LESS_THAN)
+        self._search_criteria = SearchCriteria([self._search_criterion1, self._search_criterion2])
 
     def test_append_criterion_with_different_attributes(self):
         search_criteria = SearchCriteria()
@@ -26,8 +27,7 @@ class TestSearchCriteria(unittest.TestCase):
         self.assertRaises(ValueError, search_criteria.append, self._search_criterion1)
 
     def test_instantiate_with_different_attributes(self):
-        search_criteria = SearchCriteria([self._search_criterion1, self._search_criterion2])
-        self.assertListEqual(search_criteria, [self._search_criterion1, self._search_criterion2])
+        self.assertListEqual(self._search_criteria, [self._search_criterion1, self._search_criterion2])
 
     def test_instantiate_with_same_attributes(self):
         self.assertRaises(ValueError, SearchCriteria, [self._search_criterion1, self._search_criterion1])
@@ -48,20 +48,16 @@ class TestSearchCriteria(unittest.TestCase):
         self.assertListEqual(search_criteria, [self._search_criterion2])
 
     def test_set_item_to_result_in_duplicate(self):
-        search_criteria = SearchCriteria([self._search_criterion1, self._search_criterion2])
-
         def perform_test():
-            search_criteria[1] = self._search_criterion1
+            self._search_criteria[1] = self._search_criterion1
 
         self.assertRaises(ValueError, perform_test)
 
     def test_set_item_replacing_self_with_self(self):
-        search_criteria = SearchCriteria([self._search_criterion1, self._search_criterion2])
-
         def perform_test():
-            search_criteria[0] = self._search_criterion1
+            self._search_criteria[0] = self._search_criterion1
 
-        self.assertListEqual(search_criteria, [self._search_criterion1, self._search_criterion2])
+        self.assertListEqual(self._search_criteria, [self._search_criterion1, self._search_criterion2])
 
     def test_create_by_addition_with_duplicates(self):
         search_criteria_1a = SearchCriteria([self._search_criterion1])
@@ -71,6 +67,10 @@ class TestSearchCriteria(unittest.TestCase):
             search_criteria_1a + search_criteria_1b
 
         self.assertRaises(ValueError, perform_test)
+
+    def test_can_get_representation(self):
+        string_representation = repr(self._search_criteria)
+        self.assertTrue(isinstance(string_representation, str))
 
 
 class TestMetadata(unittest.TestCase):
@@ -135,7 +135,7 @@ class TestMetadata(unittest.TestCase):
     def test_eq_when_not_eqal(self):
         self.assertNotEqual(Metadata(TestMetadata._TEST_VALUES), Metadata())
 
-    def test_can_get_representation(self):
+    def test_can_get_string_representation(self):
         string_representation = repr(self.metadata)
         self.assertTrue(isinstance(string_representation, str))
 
