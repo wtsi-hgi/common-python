@@ -1,2 +1,2 @@
 watchdog==0.8.3
-git+https://github.com/wtsi-hgi/python-json.git@master#egg=hgijson
+git+https://github.com/wtsi-hgi/python-json.git@2347efb7384f33747dab805e849245d76faf7f83#egg=hgijson
