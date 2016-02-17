@@ -35,7 +35,6 @@ class FilesDataSource(DataSource[DataSourceType]):
         :param file_path: the path to the file to extract data from
         :return: the extracted data
         """
-        pass
 
     @abstractmethod
     def is_data_file(self, file_path: str) -> bool:
@@ -44,7 +43,6 @@ class FilesDataSource(DataSource[DataSourceType]):
         :param file_path: path to the updated file
         :return: whether the file is of interest
         """
-        pass
 
     def get_all(self) -> Sequence[DataSourceType]:
         return FilesDataSource._extract_data_from_origin_map(self._load_all_in_directory())

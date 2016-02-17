@@ -16,5 +16,3 @@ class DataSource(Generic[DataSourceType]):
         Gets the data at the source.
         :return: instances of `DataSourceType`
         """
-        pass
-
