@@ -1,6 +1,6 @@
 import copy
 from collections import defaultdict
-from multiprocessing import Lock
+from threading import Lock
 from typing import Any, Iterable, Mapping, Dict
 
 
