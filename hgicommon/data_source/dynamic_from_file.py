@@ -67,12 +67,11 @@ class RegisteringDataSource(SynchronisedFilesDataSource):
         if file_path.rsplit(".")[-1] != "py":
             raise RuntimeError("Can only import uncompiled python modules that have the extension \".py\"")
 
-        loaded = None
+        loaded = []
 
         def registration_event_listener(event: RegistrationEvent):
             assert event.event_type == RegistrationEvent.Type.REGISTERED
-            nonlocal loaded
-            loaded = event.target
+            loaded.append(event.target)
 
         RegisteringDataSource._load_locks[self._data_type].acquire()
         registration_event_listenable_map[self._data_type].add_listener(registration_event_listener)
@@ -83,11 +82,11 @@ class RegisteringDataSource(SynchronisedFilesDataSource):
             RegisteringDataSource._load_locks[self._data_type].release()
             registration_event_listenable_map[self._data_type].remove_listener(registration_event_listener)
 
-        if loaded is None:
+        if len(loaded) == 0:
             raise RuntimeError(
                     "Module \"%s\" failed to register an object of the type `%s`" % (file_path, self._data_type))
         else:
-            return [loaded]
+            return loaded
 
     @staticmethod
     def _load_module(path: str):
