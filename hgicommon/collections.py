@@ -16,6 +16,12 @@ class Metadata(Mapping):
         self._data = dict(seq)
         self._key_lock = defaultdict(Lock)    # type: Dict[Any, Lock]
 
+    def to_dict(self):
+        """
+        Exports the actual metadata as a dict with key: str, value: set(values).
+        """
+        return self._data
+        
     def rename(self, key: Any, new_key: Any):
         """
         Renames an item in this collection as a transaction.
