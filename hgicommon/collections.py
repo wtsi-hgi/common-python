@@ -46,9 +46,7 @@ class Metadata(Mapping):
 
     def pop(self, key: Any, default=None) -> Any:
         with self._key_lock[key]:
-            value = self.get(key, default)
-            del self._data[key]
-            return value
+            return self._data.pop(key)
 
     def clear(self):
         for key in self._key_lock.items():
