@@ -46,7 +46,7 @@ class Metadata(Mapping):
 
     def pop(self, key: Any, default=None) -> Any:
         with self._key_lock[key]:
-            return self._data.pop(key)
+            return self._data.pop(key, None)
 
     def clear(self):
         for key in self._key_lock.items():
