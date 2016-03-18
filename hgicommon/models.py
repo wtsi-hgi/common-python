@@ -34,7 +34,7 @@ class SearchCriterion(Model):
     """
     Model of an attribute search criterion.
     """
-    def __init__(self, attribute: str, value: str, comparison_operator: ComparisonOperator):
+    def __init__(self, attribute: str, value: str, comparison_operator: ComparisonOperator=ComparisonOperator.EQUALS):
         self.attribute = attribute
         self.value = value
         self.comparison_operator = comparison_operator
