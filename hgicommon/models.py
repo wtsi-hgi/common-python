@@ -1,13 +1,13 @@
 from abc import ABCMeta
 from enum import Enum, unique
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Set
 
 from hgicommon.enums import ComparisonOperator
 
 
 class Model(metaclass=ABCMeta):
     """
-    Superclass that all POPOs (Plain Old Python Objects) must implement.
+    Superclass that POPOs (Plain Old Python Objects) can implement.
     """
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -20,7 +20,10 @@ class Model(metaclass=ABCMeta):
     def __str__(self) -> str:
         string_builder = []
         for property, value in vars(self).items():
+            if isinstance(value, Set):
+                value = str(sorted(value))
             string_builder.append("%s: %s" % (property, value))
+        string_builder = sorted(string_builder)
         return "{ %s }" % ', '.join(string_builder)
 
     def __repr__(self) -> str:

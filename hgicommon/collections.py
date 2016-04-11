@@ -14,7 +14,7 @@ class Metadata(Mapping):
         :param seq: initial metadata items
         """
         self._data = dict(seq)
-        self._key_lock = defaultdict(Lock)    # type: Dict[Any, Lock]
+        self._key_locks = defaultdict(Lock)    # type: Dict[Any, Lock]
 
     def rename(self, key: Any, new_key: Any):
         """
@@ -27,7 +27,7 @@ class Metadata(Mapping):
         if new_key == key:
             return
 
-        required_locks = [self._key_lock[key], self._key_lock[new_key]]
+        required_locks = [self._key_locks[key], self._key_locks[new_key]]
         ordered_required_locks = sorted(required_locks, key=lambda x: id(x))
         for lock in ordered_required_locks:
             lock.acquire()
@@ -45,14 +45,14 @@ class Metadata(Mapping):
         return self._data.get(key, default)
 
     def pop(self, key: Any, default=None) -> Any:
-        with self._key_lock[key]:
+        with self._key_locks[key]:
             return self._data.pop(key, default)
 
     def clear(self):
-        for key in self._key_lock.items():
+        for key in self._key_locks.items():
             self[key].acquire()
         self._data.clear()
-        for key in self._key_lock.items():
+        for key in self._key_locks.items():
             self[key].release()
 
     def items(self) -> Iterable(Any):
@@ -88,11 +88,11 @@ class Metadata(Mapping):
         return self._data[key]
 
     def __setitem__(self, key: Any, value: Any):
-        with self._key_lock[key]:
+        with self._key_locks[key]:
             self._data[key] = value
 
     def __delitem__(self, key: Any):
-        with self._key_lock[key]:
+        with self._key_locks[key]:
             del self._data[key]
 
     def __contains__(self, key: Any) -> bool:
