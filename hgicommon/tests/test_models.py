@@ -15,7 +15,6 @@ class TestModel(unittest.TestCase):
         self._model.property_2 = "a"
         self._model.property_3 = [i for i in range(1000)]
         self._model.property_4 = set([i for i in range(1000)])
-        print(self._model)
 
     def test_equal_non_nullity(self):
         self.assertNotEqual(self._model, None)

@@ -21,7 +21,7 @@ class Model(metaclass=ABCMeta):
         string_builder = []
         for property, value in vars(self).items():
             if isinstance(value, Set):
-                value = str(sorted(value))
+                value = str(sorted(value, key=id))
             string_builder.append("%s: %s" % (property, value))
         string_builder = sorted(string_builder)
         return "{ %s }" % ', '.join(string_builder)
