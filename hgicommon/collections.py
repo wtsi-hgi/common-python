@@ -4,6 +4,28 @@ from threading import Lock
 from typing import Any, Iterable, Mapping, Dict
 
 
+class ThreadSafeDefaultdict(defaultdict):
+    """
+    `defaultdict` (https://docs.python.org/3/library/collections.html#collections.defaultdict) implementation where the
+    default value is created and set in a thread-safe way. This allows use of a default dict of locks, which is not
+    thread-safe with `defaultdict(Lock)` (https://github.com/wtsi-hgi/python-common/issues/8#issuecomment-218996159).
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._creation_lock = Lock()
+
+    def __getitem__(self, key):
+        if key in self:
+            return super().__getitem__(key)
+        else:
+            with self._creation_lock:
+                if key in self:
+                    # Value for key was created whilst this thread was waiting for the lock
+                    return super().__getitem__(key)
+                else:
+                    return self.__missing__(key)
+
+
 class Metadata(Mapping):
     """
     Generic key-value metadata model.
@@ -14,7 +36,7 @@ class Metadata(Mapping):
         :param seq: initial metadata items
         """
         self._data = dict(seq)
-        self._key_locks = defaultdict(Lock)    # type: Dict[Any, Lock]
+        self._key_locks = ThreadSafeDefaultdict(Lock)    # type: Dict[Any, Lock]
 
     def rename(self, key: Any, new_key: Any):
         """

@@ -1,7 +1,56 @@
 import copy
 import unittest
+from collections import defaultdict
+from threading import Semaphore
+from threading import Thread
+from time import sleep
 
-from hgicommon.collections import Metadata
+from hgicommon.collections import Metadata, ThreadSafeDefaultdict
+
+
+class TestThreadSafeDefaultdict(unittest.TestCase):
+    """
+    Tests for `ThreadSafeDefaultdict`.
+    """
+    def test_is_defaultdict(self):
+        self.assertIsInstance(ThreadSafeDefaultdict(), defaultdict)
+
+    def test_getitem_can_be_used_to_get_valeus(self):
+        thread_safe_dict = ThreadSafeDefaultdict(object)
+        item_at_zero = thread_safe_dict[0]
+        self.assertEqual(thread_safe_dict[1], thread_safe_dict[1])
+        self.assertNotEqual(thread_safe_dict[2], thread_safe_dict[3])
+        self.assertEqual(item_at_zero, thread_safe_dict[0])
+
+    def test_getitem_is_threadsafe(self):
+        # `defaultdict` will fail this test!
+        number_of_threads = 100
+        values = []
+
+        def object_factory() -> object:
+            # This sleep triggers a context switch if there are other threads running
+            sleep(0.1)
+            created = object()
+            values.append(created)
+            return created
+
+        thread_safe_dict = ThreadSafeDefaultdict(object_factory)
+        values_of_foo = []
+        wait_semaphore = Semaphore(0)
+
+        def get_and_store_foo_value():
+            values_of_foo.append(thread_safe_dict["foo"])
+            wait_semaphore.release()
+
+        for _ in range(number_of_threads):
+            Thread(target=get_and_store_foo_value).start()
+
+        for _ in range(number_of_threads):
+            wait_semaphore.acquire()
+
+        assert len(values_of_foo) == number_of_threads
+        for i in range(number_of_threads - 1):
+            self.assertEqual(values_of_foo[i], values_of_foo[i + 1])
 
 
 class TestMetadata(unittest.TestCase):
@@ -79,6 +128,7 @@ class TestMetadata(unittest.TestCase):
 
     def test_deepcopy(self):
         self.assertEqual(copy.deepcopy(self.metadata), self.metadata)
+
 
 if __name__ == "__main__":
     unittest.main()
