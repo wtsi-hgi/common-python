@@ -2,6 +2,7 @@
 ## [Unreleased]
 ### Added
 - Counting lock.
+- Exception suppression decorator.
 
 ### Fixed
 - Thread-safety issue in `Metadata` ([#8](https://github.com/wtsi-hgi/python-common/issues/8)).
