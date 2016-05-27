@@ -1,5 +1,8 @@
 # Change Log
 ## [Unreleased]
+### Added
+- Counting lock.
+
 ### Fixed
 - Thread-safety issue in `Metadata` ([#8](https://github.com/wtsi-hgi/python-common/issues/8)).
 
