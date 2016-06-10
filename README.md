@@ -8,7 +8,12 @@
 - Python >= 3.5
 
 ### Installation
-This library can be installed directly from GitHub:
+Stable releases can be installed via PyPI:
+```bash
+$ pip3 install hgicommon
+```
+
+Bleeding edge versions can be installed directly from GitHub:
 ```bash
 $ pip3 install git+https://github.com/wtsi-hgi/python-common.git@<commit_id_or_branch_or_tag>#egg=hgicommon
 ```
