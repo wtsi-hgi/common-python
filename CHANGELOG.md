@@ -1,8 +1,9 @@
 # Change Log
-## [Unreleased]
+## 1.1.0 - 2016-06-13
 ### Added
 - Counting lock.
 - Exception suppression decorator.
+- Support for hosting on PyPI.
 
 ### Removed
 - Unused JSON serialisation code and subsequent dependency on `hgijson`.
