@@ -27,6 +27,7 @@ General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 """
+from datetime import datetime
 from threading import Lock
 
 class CountingLock(object):
@@ -35,27 +36,44 @@ class CountingLock(object):
         """ Wraps Lock constructor """
         self._lock = Lock(*args, **kwargs)
 
-        self._wait_lock = Lock()
+        self._stat_lock = Lock()
         self._waiting = 0
+        self._locked = False  # Don't rely on the undocumented API
+        self._last_released = datetime.now()
 
     def acquire(self, *args, **kwargs):
         """ Wraps Lock.acquire """
-        with self._wait_lock:
+        with self._stat_lock:
             self._waiting += 1
 
         self._lock.acquire(*args, **kwargs)
 
-        with self._wait_lock:
+        with self._stat_lock:
+            self._locked = True
             self._waiting -= 1
 
     def release(self):
         """ Wraps Lock.release """
         self._lock.release()
 
+        with self._stat_lock:
+            self._locked = False
+            self._last_released = datetime.now()
+
     def waiting_to_acquire(self) -> int:
         """ Return the number of threads waiting to acquire the lock """
-        with self._wait_lock:
+        with self._stat_lock:
             return self._waiting
+
+    def is_locked(self) -> bool:
+        """ Is the lock currently acquired """
+        with self._stat_lock:
+            return self._locked
+
+    def last_released(self) -> datetime:
+        """ Return the last lock release time """
+        with self._stat_lock:
+            return self._last_released
 
     def __enter__(self):
         self.acquire()
