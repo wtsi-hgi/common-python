@@ -1,8 +1,11 @@
 # Change Log
-## 1.1.0 - 2016-06-13
+## [1.2.0 - 2016-09-19]
 ### Added
 - Code to help with using Docker.
 - Random string generator.
+
+## 1.1.0 - 2016-06-13
+### Added
 - Counting lock.
 - Exception suppression decorator.
 - Support for hosting on PyPI.
