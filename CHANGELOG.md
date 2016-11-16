@@ -1,5 +1,9 @@
 # Change Log
-## [1.2.0 - 2016-09-19]
+## [Unreleased]
+### Added
+- Helper to get open port.
+
+## 1.2.0 - 2016-09-19
 ### Added
 - Code to help with using Docker.
 - Random string generator.
