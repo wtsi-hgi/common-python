@@ -102,13 +102,13 @@ class Metadata(Mapping):
         for key in self._key_locks.items():
             self[key].release()
 
-    def items(self) -> Iterable(Any):
+    def items(self) -> Iterable[Any]:
         return self._data.items()
 
-    def keys(self) -> Iterable(Any):
+    def keys(self) -> Iterable[Any]:
         return self._data.keys()
 
-    def values(self) -> Iterable(Any):
+    def values(self) -> Iterable[Any]:
         return self._data.values()
 
     def __str__(self) -> str:
@@ -125,7 +125,7 @@ class Metadata(Mapping):
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
-    def __iter__(self) -> Iterable(Any):
+    def __iter__(self) -> Iterable[Any]:
         return self._data.__iter__()
 
     def __len__(self) -> int:
