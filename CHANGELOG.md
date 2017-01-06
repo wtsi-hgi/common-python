@@ -3,6 +3,7 @@
 ### Added
 - Helper to get open port.
 - Manager to control temp files.
+- Code to help with creating unittests that run the same tests on multiple types.
 
 ## 1.2.0 - 2016-09-19
 ### Added
