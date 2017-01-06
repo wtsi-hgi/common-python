@@ -2,6 +2,7 @@
 ## [Unreleased]
 ### Added
 - Helper to get open port.
+- Manager to control temp files.
 
 ## 1.2.0 - 2016-09-19
 ### Added
