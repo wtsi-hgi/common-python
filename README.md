@@ -37,7 +37,7 @@ $ nosetests -v
 
 To generate a test coverage report with nosetests:
 ```bash
-$ nosetests -v --with-coverage --cover-package=hgicommon --cover-inclusive
+$ nosetests -v --with-coverage --cover-package=hgicommon --cover-inclusive --exclude-test=hgicommon.testing.TestUsingType --exclude-test=hgicommon.testing.create_tests
 ```
 
 

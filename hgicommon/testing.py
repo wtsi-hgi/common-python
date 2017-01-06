@@ -30,7 +30,7 @@ def create_tests(superclass: Type[TestUsingType], types: Iterable[type]) -> Dict
         name = "Test%s" % test_type.__name__
         test = type(
             name,
-            (superclass[test_type],),
+            (superclass[test_type], ),
             # Confusing lambda magic explained here: http://stackoverflow.com/a/2295368
             {"get_type_to_test": staticmethod((lambda test_type: lambda: test_type)(test_type))}
         )
