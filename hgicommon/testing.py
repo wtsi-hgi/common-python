@@ -9,6 +9,7 @@ TEST_LATEST_ONLY_ENVIRONMENT_VARIABLE_SET_VALUE = "1"
 TypeToTest = TypeVar("TestType")
 
 
+
 class TestUsingType(Generic[TypeToTest], TestCase, metaclass=ABCMeta):
     """
     A test for a type that can be retrieved using the `get_type_to_test` method.
@@ -22,16 +23,19 @@ class TestUsingType(Generic[TypeToTest], TestCase, metaclass=ABCMeta):
         """
 
 
-def create_tests(superclass: Type[TestUsingType], types: Iterable[type]) -> Dict[str, TestUsingType]:
+def create_tests(superclass: Type[TestUsingType], types: Iterable[type],
+                 test_namer:Callable[[str, str], str]=lambda superclass_name, test_type: "Test%s" % test_type) \
+        -> Dict[str, TestUsingType]:
     """
     Creates tests classes that are subclasses of the given superclass for a number of different types.
     :param superclass: the test superclass (must be a subclass of `TestUsingType`)
     :param types: the types to test
+    :param test_namer: function used to generate the name of the test
     :return: dictionary with the names of the tests as keys and the tests as values
     """
     tests = dict()      # type: Dict[str, TestCase]
     for test_type in types:
-        name = "Test%s" % test_type.__name__
+        name = test_namer(superclass, test_type)
         test = type(
             name,
             (superclass[test_type], ),

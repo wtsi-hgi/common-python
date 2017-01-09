@@ -8,17 +8,23 @@ class TestCreateTests(unittest.TestCase):
     """
     Tests for `create_tests`.
     """
-    def test_can_create_tests(self):
-        class ExampleTest(TestUsingType[TypeToTest]):
-            pass
+    class _ExampleTest(TestUsingType[TypeToTest]):
+        pass
 
+    def test_can_create_tests(self):
         test_types = {int, str, float}
-        tests = create_tests(ExampleTest, test_types)
+        tests = create_tests(TestCreateTests._ExampleTest, test_types)
 
         for name, test in tests.items():
             self.assertTrue(issubclass(test, TestUsingType))
             test_types.remove(test.get_type_to_test())
         self.assertEqual(0, len(test_types))
+
+    def test_can_create_test_with_custom_naming(self):
+        custom_namer = lambda *args: "MyTestName"
+        tests = create_tests(TestCreateTests._ExampleTest, {object}, custom_namer)
+        self.assertEqual(1, len(tests))
+        self.assertEqual(custom_namer(), list(tests.keys())[0])
 
 
 class TestGetClassesToTest(unittest.TestCase):
