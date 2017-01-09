@@ -1,13 +1,17 @@
+import os
 from abc import ABCMeta, abstractmethod
-from typing import TypeVar, Generic, Dict, Iterable, Type
+from typing import TypeVar, Generic, Dict, Iterable, Type, Set, Callable
 from unittest import TestCase
+
+TEST_LATEST_ONLY_ENVIRONMENT_VARIABLE_NAME = "TEST_LATEST_ONLY"
+TEST_LATEST_ONLY_ENVIRONMENT_VARIABLE_SET_VALUE = "1"
 
 TypeToTest = TypeVar("TestType")
 
 
 class TestUsingType(Generic[TypeToTest], TestCase, metaclass=ABCMeta):
     """
-    TODO
+    A test for a type that can be retrieved using the `get_type_to_test` method.
     """
     @staticmethod
     @abstractmethod
@@ -36,3 +40,20 @@ def create_tests(superclass: Type[TestUsingType], types: Iterable[type]) -> Dict
         )
         tests[name] = test
     return tests
+
+
+def get_classes_to_test(all_classes: Set[type], latest_class: type,
+                        _environment_variable_reader: Callable[[str], str]=os.environ.get) -> Set[type]:
+    """
+    Gets the classes of all those given that are to be tested, where the environment variable
+    `TEST_LATEST_ONLY_ENVIRONMENT_VARIABLE_NAME` can be used to limit testing to the given latest only.
+    :param all_classes: all classes that can be tested
+    :param latest_class: the latest of the given classes
+    :param _environment_variable_reader: not to be used - for use in testing only
+    :return: classes to be tested
+    """
+    test_latest_only = _environment_variable_reader(TEST_LATEST_ONLY_ENVIRONMENT_VARIABLE_NAME)
+    if test_latest_only == TEST_LATEST_ONLY_ENVIRONMENT_VARIABLE_SET_VALUE:
+        return {latest_class}
+    else:
+        return all_classes
