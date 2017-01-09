@@ -6,6 +6,7 @@
 - Code to help with creating unittests that run the same tests on multiple types.
 - Function to help use tests that can either test all classes or just the "latest" one, depending on the setting of an 
 environment variable.
+- Function to extract version numbers from strings.
 
 ## 1.2.0 - 2016-09-19
 ### Added
