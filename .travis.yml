@@ -13,7 +13,7 @@ install:
   - pip install -r test_requirements.txt
 
 script:
-  - nosetests -v --with-coverage --cover-package=hgicommon --cover-inclusive --exclude-test=hgicommon.testing.TestUsingType --exclude-test=hgicommon.testing.create_tests
+  - nosetests -v --with-coverage --cover-package=hgicommon --cover-inclusive --exclude-test=hgicommon.testing.TestUsingType --exclude-test=hgicommon.testing.create_tests --exclude-test=hgicommon.testing.get_classes_to_test
 
 after_success:
   - codecov
