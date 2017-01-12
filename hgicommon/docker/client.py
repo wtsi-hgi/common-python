@@ -23,7 +23,7 @@ def _create_client(base_url: str, tls: TLSConfig=False) -> Optional[APIClient]:
     """
     try:
         client = APIClient(base_url=base_url, tls=tls, version="auto")
-        return client if client.ping() == "OK" else None
+        return client if client.ping() else None
     except:
         return None
 
