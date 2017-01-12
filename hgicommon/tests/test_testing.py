@@ -1,20 +1,29 @@
 import unittest
 
-from hgicommon.testing import TestUsingType, create_tests, TypeToTest, get_classes_to_test, \
-    TEST_LATEST_ONLY_ENVIRONMENT_VARIABLE_SET_VALUE
+from hgicommon.testing import TestUsingType, create_tests, get_classes_to_test, \
+    TEST_LATEST_ONLY_ENVIRONMENT_VARIABLE_SET_VALUE, TestUsingObject, create_tests_using_objects, \
+    create_tests_using_types, TypeUsedInTest, ObjectTypeUsedInTest
 
 
-class TestCreateTests(unittest.TestCase):
+class _ExampleTestThatUsesTypes(TestUsingType[TypeUsedInTest]):
     """
-    Tests for `create_tests`.
+    Example test that uses types.
     """
-    class _ExampleTest(TestUsingType[TypeToTest]):
-        pass
 
+
+class _ExampleTestThatUsesObjects(TestUsingObject[ObjectTypeUsedInTest]):
+    """
+    Example test that uses objects.
+    """
+
+
+class TestCreateTestsUsingTypes(unittest.TestCase):
+    """
+    Tests for `create_tests_using_types`.
+    """
     def test_can_create_tests(self):
-        test_types = {int, str, float}
-        tests = create_tests(TestCreateTests._ExampleTest, test_types)
-
+        test_types = {type, int, str, float}
+        tests = create_tests_using_types(_ExampleTestThatUsesTypes, test_types)
         for name, test in tests.items():
             self.assertTrue(issubclass(test, TestUsingType))
             test_types.remove(test.get_type_to_test())
@@ -22,9 +31,41 @@ class TestCreateTests(unittest.TestCase):
 
     def test_can_create_test_with_custom_naming(self):
         custom_namer = lambda *args: "MyTestName"
-        tests = create_tests(TestCreateTests._ExampleTest, {object}, custom_namer)
+        tests = create_tests_using_types(_ExampleTestThatUsesTypes, {object}, custom_namer)
         self.assertEqual(1, len(tests))
         self.assertEqual(custom_namer(), list(tests.keys())[0])
+
+
+class TestCreateTestsUsingObjects(unittest.TestCase):
+    """
+    Tests for `create_tests_using_objects`.
+    """
+    def test_can_create_tests(self):
+        test_objects = {object(), int(1), str("2"), float(3.0)}
+        tests = create_tests_using_objects(_ExampleTestThatUsesObjects, test_objects)
+        for name, test in tests.items():
+            self.assertTrue(issubclass(test, TestUsingObject))
+            test_objects.remove(test.get_object_to_test())
+        self.assertEqual(0, len(test_objects))
+
+    def test_can_create_test_with_custom_naming(self):
+        custom_namer = lambda *args: "MyTestName"
+        tests = create_tests_using_objects(_ExampleTestThatUsesObjects, {object()}, custom_namer)
+        self.assertEqual(1, len(tests))
+        self.assertEqual(custom_namer(), list(tests.keys())[0])
+
+
+class TestCreateTests(unittest.TestCase):
+    """
+    Tests for `create_tests`.
+    """
+    def test_can_create_tests_using_types(self):
+        tests = create_tests(_ExampleTestThatUsesTypes, {object()})
+        self.assertTrue(issubclass(list(tests.values())[0], TestUsingType))
+
+    def test_can_create_tests_using_objects(self):
+        tests = create_tests(_ExampleTestThatUsesObjects, {object()}, lambda *args: "Name")
+        self.assertTrue(issubclass(list(tests.values())[0], TestUsingObject))
 
 
 class TestGetClassesToTest(unittest.TestCase):
