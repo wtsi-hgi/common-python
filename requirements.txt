@@ -1,2 +1,2 @@
 watchdog==0.8.3
-docker-py==1.10.6
+docker==2.0.1
