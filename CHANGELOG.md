@@ -1,5 +1,5 @@
 # Change Log
-## [Unreleased]
+## 1.3.0 - 2017-02-22
 ### Added
 - Helper to get open port.
 - Manager to control temp files.
